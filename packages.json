@@ -4,6 +4,8 @@
     {
       "id": "cannoli_example",
       "name": "Example",
+      "version": "0.1.0",
+      "category": "Examples",
       "description": "Placeholder package that prints a message when enabled.",
       "path": "addons/cannoli_example",
       "dependencies": [],
