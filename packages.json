@@ -10,6 +10,16 @@
       "path": "addons/cannoli_example",
       "dependencies": [],
       "plugin": true
+    },
+    {
+      "id": "relationships",
+      "name": "Relationships",
+      "version": "1.0.0",
+      "category": "Gameplay",
+      "description": "Factions, affinity, personality traits, PAD emotions, deeds, memories and gossip for NPCs. Requires Godot 4.7+.",
+      "path": "addons/relationships",
+      "dependencies": [],
+      "plugin": true
     }
   ]
 }
