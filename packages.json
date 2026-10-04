@@ -20,6 +20,16 @@
       "path": "addons/relationships",
       "dependencies": [],
       "plugin": true
+    },
+    {
+      "id": "save",
+      "name": "Save",
+      "version": "0.2.0",
+      "category": "Tools",
+      "description": "Slot files for game data, with timer autosave. Requires Godot 4.7+.",
+      "path": "addons/save",
+      "dependencies": [],
+      "plugin": true
     }
   ]
 }
