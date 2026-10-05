@@ -321,7 +321,9 @@ func test_animation_action() -> void:
 	animation_player.add_animation_library("", library)
 	character.add_child(animation_player)
 	var tree := AnimationTree.new()
-	tree.tree_root = AnimationNodeBlend2.new()
+	var blend_tree := AnimationNodeBlendTree.new()
+	blend_tree.add_node("Blend", AnimationNodeBlend2.new())
+	tree.tree_root = blend_tree
 	character.add_child(tree)
 	add_node(character)
 	tree.anim_player = tree.get_path_to(animation_player)
@@ -334,11 +336,11 @@ func test_animation_action() -> void:
 	action.execute()
 	assert_eq(animation_player.current_animation, "")
 	action.action = QuestAnimationAction.AnimationControl.SET_FLOAT
-	action.target = "blend_amount"
+	action.target = "Blend/blend_amount"
 	action.float_value = 0.75
 	action.execute()
-	assert_almost_eq(float(tree.get("parameters/blend_amount")), 0.75)
-	assert_eq(action.get_editor_name(), "Animation on hero: Set blend_amount to 0.75")
+	assert_almost_eq(float(tree.get("parameters/Blend/blend_amount")), 0.75)
+	assert_eq(action.get_editor_name(), "Animation on hero: Set Blend/blend_amount to 0.75")
 
 
 func test_reward_action() -> void:
