@@ -119,7 +119,7 @@ func _clear_instances() -> void:
 	for instance in _instances:
 		if is_instance_valid(instance):
 			instance.get_parent().remove_child(instance)
-			instance.queue_free()
+			instance.free()
 	_instances.clear()
 
 
@@ -154,7 +154,7 @@ func _timed_despawn(instance: Control, duration: float) -> void:
 		else:
 			_instances.erase(instance)
 			instance.get_parent().remove_child(instance)
-			instance.queue_free()
+			instance.free()
 			if _instances.is_empty() and _queue.is_empty():
 				hide()
 	_despawn_running = false
