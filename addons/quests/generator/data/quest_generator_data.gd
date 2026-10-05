@@ -8,12 +8,15 @@ extends RefCounted
 ## and is saved by [method record_generator_data].
 
 ## How facts are weighted when a generator's own selection mode is "same as global".
-static var global_goal_selection: QuestUrgentFactSelectionMode = QuestUrgentFactSelectionMode.create(
-		QuestUrgentFactSelectionMode.Criterion.WEIGHTED, 1)
+## Null means weighted, one fact. It isn't created by default: a static that holds
+## an instance of a script that refers back to this class would keep both alive at exit.
+static var global_goal_selection: QuestUrgentFactSelectionMode
 ## The domain type that represents the player's inventory. If null, one is created on demand.
 static var default_player_domain_type: QuestDomainType
 
-static var _runtime_drive_values: Dictionary = {}
+## Entity types that have runtime drive values or were registered, as
+## [WeakRef]s by key. Statics must not hold entity types strongly: a static that
+## references an instance of a script keeps that script alive at exit.
 static var _known_types: Dictionary = {}
 
 
@@ -55,42 +58,63 @@ static func apply_settings() -> void:
 
 ## Returns the runtime drive values for an entity type, creating them from the originals.
 static func get_runtime_drive_values(entity_type: QuestEntityType) -> Array[QuestDriveValue]:
-	var result: Array[QuestDriveValue] = []
 	if entity_type == null:
-		return result
-	if not _runtime_drive_values.has(entity_type):
+		return []
+	if not entity_type._has_runtime_drive_values:
 		var list: Array[QuestDriveValue] = []
 		for dv in entity_type.original_drive_values:
 			if dv != null:
 				list.append(dv.copy())
-		_runtime_drive_values[entity_type] = list
-		_known_types[key_of(entity_type)] = entity_type
+		entity_type._runtime_drive_values = list
+		entity_type._has_runtime_drive_values = true
+		register_entity_type(entity_type)
 		wire_save_callbacks()
-	return _runtime_drive_values[entity_type]
+	return entity_type._runtime_drive_values
 
 
 static func set_runtime_drive_values(entity_type: QuestEntityType, values: Array[QuestDriveValue]) -> void:
 	if entity_type == null:
 		return
-	_runtime_drive_values[entity_type] = values
-	_known_types[key_of(entity_type)] = entity_type
+	entity_type._runtime_drive_values = values
+	entity_type._has_runtime_drive_values = true
+	register_entity_type(entity_type)
 	wire_save_callbacks()
 
 
 ## Discards all runtime drive values, restoring the authored ones.
 static func reset_runtime_data() -> void:
-	_runtime_drive_values.clear()
+	for key: String in _known_types:
+		var entity_type := (_known_types[key] as WeakRef).get_ref() as QuestEntityType
+		if entity_type != null:
+			entity_type._runtime_drive_values = []
+			entity_type._has_runtime_drive_values = false
+
+
+## Discards runtime data and every static reference held by the generator
+## (known entity types, the player domain and player entity type, the cached
+## Relationships bridge, the planner counters), and restores the default global
+## goal selection (null). Call when tearing down, such as between tests.
+static func reset_static_state() -> void:
+	reset_runtime_data()
+	_known_types.clear()
+	QuestDomainType.reset_static_state()
+	QuestPlayerEntityType.reset_static_state()
+	QuestAffinity.reset_bridge_cache()
+	QuestPlanner.reset_static_state()
+	default_player_domain_type = null
+	global_goal_selection = null
 
 
 ## Records the runtime drive values of every entity type that has them.
 ## Returns only bools, numbers, strings, arrays and dictionaries.
 static func record_generator_data() -> Dictionary:
 	var types := {}
-	for entity_type: QuestEntityType in _runtime_drive_values:
-		if not is_instance_valid(entity_type):
+	for known_key: String in _known_types:
+		var entity_type := (_known_types[known_key] as WeakRef).get_ref() as QuestEntityType
+		if entity_type == null or not entity_type._has_runtime_drive_values:
 			continue
 		var values := {}
-		for dv: QuestDriveValue in _runtime_drive_values[entity_type]:
+		for dv: QuestDriveValue in entity_type._runtime_drive_values:
 			if dv == null or dv.drive == null:
 				continue
 			values[key_of(dv.drive)] = dv.value
@@ -121,15 +145,17 @@ static func apply_generator_data(data: Dictionary) -> void:
 ## even if it has no file path.
 static func register_entity_type(entity_type: QuestEntityType) -> void:
 	if entity_type != null:
-		_known_types[key_of(entity_type)] = entity_type
+		_known_types[key_of(entity_type)] = weakref(entity_type)
 
 
 static func _find_entity_type(key: String) -> QuestEntityType:
-	if _known_types.has(key) and is_instance_valid(_known_types[key]):
-		return _known_types[key]
+	if _known_types.has(key):
+		var known := (_known_types[key] as WeakRef).get_ref() as QuestEntityType
+		if known != null:
+			return known
 	if key.begins_with("res://") and ResourceLoader.exists(key):
 		var loaded := load(key) as QuestEntityType
 		if loaded != null:
-			_known_types[key] = loaded
+			register_entity_type(loaded)
 		return loaded
 	return null

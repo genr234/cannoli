@@ -2,6 +2,14 @@ class_name QuestMessageRewardSystem
 extends QuestRewardSystem
 ## Grants a reward by sending a message with a count when the quest succeeds,
 ## such as "Get" with parameter "Coin" and the number of coins as its value.
+##
+## The message is sent by the quest giver to [member target] (the quester by
+## default), with the amount as an integer value, like [QuestRewardAction],
+## which sends [constant QuestRewardAction.REWARD_MESSAGE] with the reward id as
+## its parameter and the amount as its value. This system keeps the original
+## defaults ("Get" and "Coin", in the manual's notation "Get:Coin") so existing
+## listeners keep working. To send the same message as [QuestRewardAction], call
+## [method use_reward_message_format].
 
 ## Use up reward points when determining the reward.
 @export var consume_points := true
@@ -29,3 +37,10 @@ func determine_reward(points: int, quest: Quest, _entity_type: QuestEntityType =
 	QuestStateInfo.validate_list(quest.state_info_list, Quest.State.size())
 	quest.state_info_list[Quest.State.SUCCESSFUL].action_list.append(message_action)
 	return (points - amount) if consume_points else points
+
+
+## Makes this system send the same message as [QuestRewardAction]: the message
+## [constant QuestRewardAction.REWARD_MESSAGE] with [param reward_id] as the parameter.
+func use_reward_message_format(reward_id: String) -> void:
+	message = QuestRewardAction.REWARD_MESSAGE
+	parameter = reward_id
