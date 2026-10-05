@@ -96,7 +96,9 @@ func test_report_deed_with_members() -> void:
 	manager.call("flush_witness_queue")
 	assert_true(QuestsRelationships.get_affinity("Villagers", "Player") < 0.0, "witnesses dislike the attacker")
 	assert_false(QuestsRelationships.report_deed(actor_body, "attack", "Nowhere", 1.0, -60.0, 50.0), "unknown target faction")
-	assert_false(QuestsRelationships.report_deed(Node.new(), "attack", "Villagers"), "no faction member on actor")
+	var lonely := Node.new()
+	add_node(lonely)
+	assert_false(QuestsRelationships.report_deed(lonely, "attack", "Villagers"), "no faction member on actor")
 
 
 func test_relationship_condition_affinity() -> void:

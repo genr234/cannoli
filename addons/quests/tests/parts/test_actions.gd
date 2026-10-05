@@ -58,7 +58,7 @@ func test_set_quest_state_action_this_quest_sets_nodes() -> void:
 
 func test_set_node_state_action() -> void:
 	var asset := PartsTestUtil.make_quest("q")
-	asset.node_list.append(QuestNode.create("step", "Step", QuestNode.Type.PASSTHROUGH))
+	asset.node_list.append(QuestNode.create("step", "Step", QuestNode.Type.CONDITION))
 	var quest := PartsTestUtil.give(_journal, asset)
 	var action := QuestSetNodeStateAction.new()
 	action.node_id = "step"
@@ -331,10 +331,10 @@ func test_animation_action() -> void:
 	action.target_node = "hero"
 	action.target = "wave"
 	action.execute()
-	assert_eq(animation_player.current_animation, "wave")
+	assert_eq(str(animation_player.current_animation), "wave")
 	action.action = QuestAnimationAction.AnimationControl.STOP
 	action.execute()
-	assert_eq(animation_player.current_animation, "")
+	assert_eq(str(animation_player.current_animation), "")
 	action.action = QuestAnimationAction.AnimationControl.SET_FLOAT
 	action.target = "Blend/blend_amount"
 	action.float_value = 0.75
