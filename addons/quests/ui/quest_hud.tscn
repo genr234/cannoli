@@ -1,0 +1,33 @@
+[gd_scene format=3]
+
+[ext_resource type="Theme" path="res://addons/quests/ui/default_theme.tres" id="1_eityo"]
+[ext_resource type="Script" path="res://addons/quests/ui/quest_default_hud.gd" id="2_t25gu"]
+[ext_resource type="Script" path="res://addons/quests/ui/quest_content_view.gd" id="3_2s1d0"]
+
+[node name="QuestHUD" type="Control" unique_id=1935754712]
+layout_mode = 3
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme = ExtResource("1_eityo")
+script = ExtResource("2_t25gu")
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=1146415889]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 16.0
+offset_right = -16.0
+grow_horizontal = 0
+mouse_filter = 2
+
+[node name="Content" type="VBoxContainer" parent="Panel" unique_id=570586498]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+script = ExtResource("3_2s1d0")
