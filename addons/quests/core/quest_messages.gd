@@ -149,6 +149,11 @@ static func send(sender: Variant, target: Variant, message: String, parameter :=
 	var manager := Quests.get_manager()
 	if manager != null:
 		manager.message_sent.emit(args)
+		if message == QUEST_ALERT:
+			var contents: Array[QuestContent] = []
+			if not values.is_empty() and values[0] is Array:
+				contents.assign(values[0])
+			manager.quest_alert.emit(parameter, contents)
 
 
 static func _remove_marked_listeners() -> void:
@@ -358,9 +363,6 @@ static func refresh_uis(sender: Variant) -> void:
 
 static func quest_alert(sender: Variant, quest_id: String, contents: Array[QuestContent]) -> void:
 	send(sender, null, QUEST_ALERT, quest_id, [contents])
-	var manager := Quests.get_manager()
-	if manager != null:
-		manager.quest_alert.emit(quest_id, contents)
 
 
 static func greet(sender: Variant, target: Variant, target_id: String) -> void:

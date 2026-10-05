@@ -91,6 +91,9 @@ func _parse_string_property(object: Object, name: String) -> bool:
 	if (name == "quest_id" or name == "required_quest_id") and object is QuestSubasset:
 		add_property_editor(name, NamePickerProperty.new(_context.get_quest_ids, "(this quest)"))
 		return true
+	if name == "quest_id_to_give" and object is QuestSubasset:
+		add_property_editor(name, NamePickerProperty.new(_context.get_quest_ids, ""))
+		return true
 	if (name == "node_id" or name == "required_node_id") and object is QuestSubasset:
 		var quest := _target_quest(object)
 		if quest == null:

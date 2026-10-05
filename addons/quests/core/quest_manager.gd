@@ -41,6 +41,10 @@ signal message_sent(args: QuestMessageArgs)
 @export var max_simultaneous_planners := 5
 @export var max_goal_action_checks_per_frame := 100
 @export var max_steps_per_frame := 100
+## The domain type of the player, used when generating quests.
+@export var default_player_domain_type: QuestDomainType
+## How goal facts are chosen from the most urgent ones.
+@export var goal_selection_mode: QuestUrgentFactSelectionMode
 @export_group("Debug")
 @export var debug := false
 @export var debug_generator := false
@@ -55,6 +59,8 @@ var _tick_time := 0.0
 var _debugger_timer := 0.0
 # Saved list data waiting for lists that haven't registered yet, by save key.
 var _pending_list_data := {}
+# Saved spawner and indicator data waiting for nodes that haven't entered the tree yet.
+var _pending_node_data := {"spawners": {}, "indicators": {}}
 
 
 func _enter_tree() -> void:
@@ -130,6 +136,7 @@ func get_completed_quest_dialogue_mode() -> CompletedQuestDialogueMode:
 ## Deletes every quest from every list and reloads the lists' starting quests.
 func reset_all() -> void:
 	_pending_list_data.clear()
+	_pending_node_data = {"spawners": {}, "indicators": {}}
 	for list in Quests.get_all_quest_lists().values().duplicate():
 		if is_instance_valid(list):
 			list.reset_to_original_state()
@@ -143,7 +150,9 @@ func record_data() -> Dictionary:
 	for list: QuestList in Quests.get_all_quest_lists().values():
 		if is_instance_valid(list) and list.include_in_saved_game_data:
 			lists[list.get_save_key()] = list.record_data()
-	var data := {"version": 1, "lists": lists, "generator": {}, "completed": Array(Quests.get_completed_quest_ids())}
+	var data := {"version": 1, "lists": lists, "generator": {}, "completed": Array(Quests.get_completed_quest_ids()),
+			"spawners": _record_nodes(&"quest_spawners", "spawner_name", "record_data"),
+			"indicators": _record_nodes(&"quest_indicator_managers", "", "record_data")}
 	if Quests.generator_record_callback.is_valid():
 		data["generator"] = Quests.generator_record_callback.call()
 	return data
@@ -157,6 +166,8 @@ func apply_data(data: Dictionary) -> void:
 	if data.has("completed"):
 		Quests.set_completed_quest_ids(data.completed)
 	_pending_list_data.clear()
+	_apply_nodes(&"quest_spawners", "spawners", data.get("spawners", {}))
+	_apply_nodes(&"quest_indicator_managers", "indicators", data.get("indicators", {}))
 	var by_key := {}
 	for list: QuestList in Quests.get_all_quest_lists().values():
 		if is_instance_valid(list):
@@ -167,6 +178,41 @@ func apply_data(data: Dictionary) -> void:
 			by_key[key].apply_data(lists[key])
 		else:
 			_pending_list_data[key] = lists[key]
+
+
+# Saves the spawners or indicator managers in the tree, keyed by spawner name or entity id.
+func _record_nodes(group: StringName, name_property: String, method: String) -> Dictionary:
+	var result := {}
+	if not is_inside_tree():
+		return result
+	for node in get_tree().get_nodes_in_group(group):
+		var key := str(node.get(name_property)) if not name_property.is_empty() else str(node.call(&"get_entity_id"))
+		if not key.is_empty():
+			result[key] = node.call(method)
+	return result
+
+
+func _apply_nodes(group: StringName, kind: String, saved: Dictionary) -> void:
+	var found := {}
+	if is_inside_tree():
+		for node in get_tree().get_nodes_in_group(group):
+			var key := str(node.get(&"spawner_name")) if kind == "spawners" else str(node.call(&"get_entity_id"))
+			found[key] = node
+	_pending_node_data[kind] = {}
+	for key: String in saved:
+		if found.has(key):
+			found[key].call(&"apply_data", saved[key])
+		else:
+			_pending_node_data[kind][key] = saved[key]
+
+
+## Spawners and indicator managers call this when they are ready, to receive saved data
+## that was applied before they existed. You don't need to call it.
+func apply_pending_node_data(kind: String, key: String, node: Node) -> void:
+	if _pending_node_data[kind].has(key):
+		var data: Dictionary = _pending_node_data[kind][key]
+		_pending_node_data[kind].erase(key)
+		node.call(&"apply_data", data)
 
 
 ## Lists call this when they register. You don't need to call it.
