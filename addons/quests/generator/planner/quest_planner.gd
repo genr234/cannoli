@@ -23,6 +23,17 @@ static var detailed_debug := false
 
 static var _active_planners := 0
 
+
+## Restores the static settings and counters to their defaults.
+static func reset_static_state() -> void:
+	max_simultaneous_planners = 5
+	max_goal_action_checks_per_frame = 100
+	max_steps_per_frame = 100
+	default_max_search_depth = 1000
+	detailed_debug = false
+	_active_planners = 0
+
+
 ## The most plan states to examine before giving up.
 var max_search_depth := default_max_search_depth
 ## Skip world model states that have already been seen during the search.
@@ -105,8 +116,12 @@ func _generate_quest_async(entity: QuestEntity, group: String, domain_type: Ques
 					require_return_to_complete, rewards_ui_contents, reward_systems)
 			if generate_abandonable_quests and quest != null:
 				quest.is_abandonable = true
+	_entity = null
+	_world_model = null
 	if generated_quest.is_valid():
 		generated_quest.call(quest)
+	elif quest != null:
+		quest.dispose(true) # Nobody is listening, so nobody will take the quest.
 
 
 ## Chooses a goal and finds a plan to achieve it, without building a quest.
@@ -181,7 +196,7 @@ func _collect_entity_types(observer_type: QuestEntityType, snapshot: QuestWorldM
 		var et := queue[head]
 		head += 1
 		for parent in et.parents:
-			_enqueue_type(parent, seen, queue)
+			_enqueue_type(parent as QuestEntityType, seen, queue)
 		for verb in et.actions:
 			if verb == null or verbs_seen.has(verb):
 				continue

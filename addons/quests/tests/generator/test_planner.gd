@@ -8,6 +8,11 @@ func before_each() -> void:
 	fx = QuestsGeneratorFixture.new()
 
 
+func after_each() -> void:
+	fx = null
+	QuestGeneratorData.reset_static_state()
+
+
 func _planner(rng_seed := 1234) -> QuestPlanner:
 	var planner := QuestPlanner.new()
 	planner.rng.seed = rng_seed

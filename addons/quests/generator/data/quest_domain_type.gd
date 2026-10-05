@@ -14,8 +14,22 @@ extends Resource
 		if value:
 			player_domain_instance = self
 
-## The domain type that represents the player's inventory.
-static var player_domain_instance: QuestDomainType
+## The domain type that represents the player's inventory. Held weakly, so the
+## asset must be kept alive elsewhere (a default one is kept alive by this class).
+static var player_domain_instance: QuestDomainType:
+	get:
+		return _player_domain_ref.get_ref() as QuestDomainType if _player_domain_ref != null else null
+	set(value):
+		_player_domain_ref = weakref(value) if value != null else null
+
+static var _player_domain_ref: WeakRef
+static var _default_player_domain: QuestDomainType
+
+
+## Forgets the player domain type, including a default one made on demand.
+static func reset_static_state() -> void:
+	_player_domain_ref = null
+	_default_player_domain = null
 
 
 func get_asset_name() -> String:
@@ -40,4 +54,5 @@ static func set_player_domain_instance(new_instance: QuestDomainType) -> void:
 		created.is_player_domain = true
 		created.display_name = "Player"
 		created.description = "Represents the player's inventory."
+		_default_player_domain = created
 		player_domain_instance = created

@@ -59,6 +59,15 @@ func _validate_node(node: QuestNode) -> void:
 		node.condition_set = QuestConditionSet.new()
 
 
+## Disposes of the quest being built and forgets it. Call this on a builder
+## whose quest is discarded; a built quest is a runtime instance whose nodes and
+## subassets refer to each other and would otherwise never be freed.
+func dispose() -> void:
+	if quest != null:
+		quest.dispose(true)
+		quest = null
+
+
 ## A random identifier suitable for a quest id.
 static func generate_guid() -> String:
 	var parts := PackedStringArray()

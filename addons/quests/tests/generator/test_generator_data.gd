@@ -8,6 +8,11 @@ func before_each() -> void:
 	fx = QuestsGeneratorFixture.new()
 
 
+func after_each() -> void:
+	fx = null
+	QuestGeneratorData.reset_static_state()
+
+
 func test_runtime_drive_values_start_as_copies() -> void:
 	var runtime := fx.villager_type.drive_values
 	assert_eq(runtime.size(), 1, "one drive value")
@@ -18,7 +23,7 @@ func test_runtime_drive_values_start_as_copies() -> void:
 
 func test_drive_values_found_through_parents() -> void:
 	var child := QuestEntityType.new()
-	child.parents = [fx.villager_type] as Array[QuestEntityType]
+	child.parents = [fx.villager_type]
 	var found := child.look_up_drive_value(fx.safety)
 	assert_true(found != null and found.value == 100.0, "inherited drive value")
 	assert_true(child.look_up_drive_value(QuestDrive.new()) == null, "unknown drive")

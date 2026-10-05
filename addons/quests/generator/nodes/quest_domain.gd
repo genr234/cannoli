@@ -63,13 +63,14 @@ func _on_node_exited(node: Node) -> void:
 	remove_entity(find_entity(node))
 
 
-## Finds the [QuestEntity] that is [param node] or is below it.
-static func find_entity(node: Node, depth := 3) -> QuestEntity:
+## Finds the [QuestEntity] that is [param node] or is below it. A negative
+## [param depth] searches all descendants.
+static func find_entity(node: Node, depth := -1) -> QuestEntity:
 	if node == null:
 		return null
 	if node is QuestEntity:
 		return node
-	if depth <= 0:
+	if depth == 0:
 		return null
 	for child in node.get_children():
 		var found := find_entity(child, depth - 1)
@@ -78,13 +79,15 @@ static func find_entity(node: Node, depth := 3) -> QuestEntity:
 	return null
 
 
+## Adds an entity, if it isn't already in the domain. Emits [signal entity_added]
+## every time it is called with an entity, as the original does.
 func add_entity(entity: QuestEntity) -> void:
 	if entity == null:
 		return
 	if not entities.has(entity):
 		entities.append(entity)
 		entity.despawned.connect(_on_despawned)
-		entity_added.emit(entity)
+	entity_added.emit(entity)
 
 
 func remove_entity(entity: QuestEntity) -> void:
