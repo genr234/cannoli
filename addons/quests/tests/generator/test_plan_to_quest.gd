@@ -202,6 +202,7 @@ func test_generated_quest_serializes() -> void:
 func test_quest_with_return_node_completes_after_discussing() -> void:
 	var quest := await _make_quest(fx.new_world_model(2), true)
 	quest.assign_quester(QuestParticipant.new("player", "Player"))
+	quest.assign_quest_giver(QuestParticipant.new("captain", "Captain Molly"))
 	quest.set_state(Quest.State.ACTIVE)
 	var needed := (quest.get_node("1").condition_set.condition_list[0] as QuestCounterCondition).required_counter_value.literal_value
 	for i in needed:
