@@ -51,10 +51,23 @@ var quest: Quest:
 	set(value):
 		_quest_ref = weakref(value) if value != null else null
 ## Runtime references to the nodes this node leads to and comes from.
-var child_list: Array[QuestNode] = []
-var parent_list: Array[QuestNode] = []
-var optional_parent_list: Array[QuestNode] = []
-var nonoptional_parent_list: Array[QuestNode] = []
+## Parents are held weakly so that a node and its children don't keep each other alive.
+var child_list: Array = []
+var parent_list: Array:
+	get:
+		return _deref(_parent_refs)
+	set(value):
+		_parent_refs = _refs(value)
+var optional_parent_list: Array:
+	get:
+		return _deref(_optional_parent_refs)
+	set(value):
+		_optional_parent_refs = _refs(value)
+var nonoptional_parent_list: Array:
+	get:
+		return _deref(_nonoptional_parent_refs)
+	set(value):
+		_nonoptional_parent_refs = _refs(value)
 ## The current state. Runtime only; use [method set_state] to change it.
 var state := State.INACTIVE
 
@@ -68,6 +81,25 @@ var is_end_node_type: bool:
 		return node_type == Type.SUCCESS or node_type == Type.FAILURE
 
 var _quest_ref: WeakRef
+var _parent_refs: Array = []
+var _optional_parent_refs: Array = []
+var _nonoptional_parent_refs: Array = []
+
+
+static func _refs(nodes: Array) -> Array:
+	var result := []
+	for node in nodes:
+		result.append(weakref(node))
+	return result
+
+
+static func _deref(refs: Array) -> Array:
+	var result := []
+	for ref: WeakRef in refs:
+		var node: Variant = ref.get_ref()
+		if node != null:
+			result.append(node)
+	return result
 var _is_checking_conditions := false
 
 
@@ -109,9 +141,9 @@ func initialize_runtime_references(p_quest: Quest) -> void:
 		var child := p_quest.get_node(child_id)
 		if child != null and child != self and not child_list.has(child):
 			child_list.append(child)
-	parent_list = []
-	optional_parent_list = []
-	nonoptional_parent_list = []
+	_parent_refs = []
+	_optional_parent_refs = []
+	_nonoptional_parent_refs = []
 
 
 func connect_runtime_node_references() -> void:
@@ -122,11 +154,11 @@ func connect_runtime_node_references() -> void:
 func _add_parent(parent: QuestNode) -> void:
 	if parent == null:
 		return
-	parent_list.append(parent)
+	_parent_refs.append(weakref(parent))
 	if parent.is_optional:
-		optional_parent_list.append(parent)
+		_optional_parent_refs.append(weakref(parent))
 	else:
-		nonoptional_parent_list.append(parent)
+		_nonoptional_parent_refs.append(weakref(parent))
 	if not parent.state_changed.is_connected(_on_parent_state_changed):
 		parent.state_changed.connect(_on_parent_state_changed)
 
@@ -143,9 +175,9 @@ func dispose() -> void:
 		if parent.state_changed.is_connected(_on_parent_state_changed):
 			parent.state_changed.disconnect(_on_parent_state_changed)
 	child_list = []
-	parent_list = []
-	optional_parent_list = []
-	nonoptional_parent_list = []
+	_parent_refs = []
+	_optional_parent_refs = []
+	_nonoptional_parent_refs = []
 
 #endregion
 
