@@ -1,0 +1,134 @@
+[gd_scene format=3]
+
+[ext_resource type="Theme" path="res://addons/quests/ui/default_theme.tres" id="1_ojd3e"]
+[ext_resource type="Script" path="res://addons/quests/ui/quest_default_journal_ui.gd" id="2_rdack"]
+[ext_resource type="Script" path="res://addons/quests/ui/quest_content_view.gd" id="3_qqjxh"]
+
+[node name="QuestJournalUI" type="Control" unique_id=636028744]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource("1_ojd3e")
+script = ExtResource("2_rdack")
+
+[node name="Dim" type="ColorRect" parent="." unique_id=1377719151]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.5)
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=1380459082]
+layout_mode = 0
+anchor_left = 0.08
+anchor_top = 0.08
+anchor_right = 0.92
+anchor_bottom = 0.92
+
+[node name="VBox" type="VBoxContainer" parent="Panel" unique_id=1042805977]
+layout_mode = 2
+
+[node name="Header" type="HBoxContainer" parent="Panel/VBox" unique_id=2116892400]
+layout_mode = 2
+
+[node name="EntityImage" type="TextureRect" parent="Panel/VBox/Header" unique_id=1449011025]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EntityName" type="Label" parent="Panel/VBox/Header" unique_id=272417658]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"QuestHeading"
+text = "Quest Journal"
+
+[node name="CloseButton" type="Button" parent="Panel/VBox/Header" unique_id=301749671]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Close"
+
+[node name="Split" type="HSplitContainer" parent="Panel/VBox" unique_id=2039712595]
+layout_mode = 2
+size_flags_vertical = 3
+split_offsets = PackedInt32Array(80)
+split_offset = 80
+
+[node name="SelectionScroll" type="ScrollContainer" parent="Panel/VBox/Split" unique_id=1229069161]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="SelectionContainer" type="VBoxContainer" parent="Panel/VBox/Split/SelectionScroll" unique_id=730078489]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DetailsColumn" type="VBoxContainer" parent="Panel/VBox/Split" unique_id=1080318246]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DetailsScroll" type="ScrollContainer" parent="Panel/VBox/Split/DetailsColumn" unique_id=1508225126]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Details" type="VBoxContainer" parent="Panel/VBox/Split/DetailsColumn/DetailsScroll" unique_id=249075730]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("3_qqjxh")
+
+[node name="DetailsButtons" type="HBoxContainer" parent="Panel/VBox/Split/DetailsColumn" unique_id=87011424]
+layout_mode = 2
+
+[node name="TrackButton" type="CheckButton" parent="Panel/VBox/Split/DetailsColumn/DetailsButtons" unique_id=1648457419]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Track"
+
+[node name="AbandonButton" type="Button" parent="Panel/VBox/Split/DetailsColumn/DetailsButtons" unique_id=1863028222]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Abandon"
+
+[node name="AbandonPanel" type="PanelContainer" parent="." unique_id=83622927]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="AbandonPanel" unique_id=1702882093]
+layout_mode = 2
+
+[node name="AskLabel" type="Label" parent="AbandonPanel/VBox" unique_id=446220090]
+layout_mode = 2
+text = "Abandon this quest?"
+
+[node name="AbandonNameLabel" type="Label" parent="AbandonPanel/VBox" unique_id=1875471601]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"QuestSubheading"
+horizontal_alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="AbandonPanel/VBox" unique_id=1357264692]
+layout_mode = 2
+alignment = 1
+
+[node name="ConfirmAbandonButton" type="Button" parent="AbandonPanel/VBox/Buttons" unique_id=167686401]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Abandon"
+
+[node name="CancelAbandonButton" type="Button" parent="AbandonPanel/VBox/Buttons" unique_id=1283997227]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Cancel"

@@ -1,0 +1,57 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://addons/quests/ui/quest_ui_root.gd" id="1_rukk0"]
+[ext_resource type="PackedScene" path="res://addons/quests/ui/quest_hud.tscn" id="2_x061i"]
+[ext_resource type="Theme" path="res://addons/quests/ui/default_theme.tres" id="3_d6de3"]
+[ext_resource type="Script" path="res://addons/quests/ui/quest_default_hud.gd" id="4_yrt6r"]
+[ext_resource type="PackedScene" path="res://addons/quests/ui/quest_dialogue_ui.tscn" id="5_doptr"]
+[ext_resource type="Script" path="res://addons/quests/ui/quest_default_dialogue_ui.gd" id="6_uky2i"]
+[ext_resource type="PackedScene" path="res://addons/quests/ui/quest_journal_ui.tscn" id="7_m34nc"]
+[ext_resource type="Script" path="res://addons/quests/ui/quest_default_journal_ui.gd" id="8_6r7ao"]
+[ext_resource type="PackedScene" path="res://addons/quests/ui/quest_alert_ui.tscn" id="9_gynbo"]
+[ext_resource type="Script" path="res://addons/quests/ui/quest_default_alert_ui.gd" id="10_phqm7"]
+
+[node name="QuestUI" type="CanvasLayer" unique_id=1344491727]
+layer = 10
+script = ExtResource("1_rukk0")
+
+[node name="HUD" type="Control" parent="." unique_id=1935754712 instance=ExtResource("2_x061i")]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme = ExtResource("3_d6de3")
+script = ExtResource("4_yrt6r")
+
+[node name="DialogueUI" type="Control" parent="." unique_id=456869257 instance=ExtResource("5_doptr")]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme = ExtResource("3_d6de3")
+script = ExtResource("6_uky2i")
+
+[node name="JournalUI" type="Control" parent="." unique_id=636028744 instance=ExtResource("7_m34nc")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource("3_d6de3")
+script = ExtResource("8_6r7ao")
+
+[node name="AlertUI" type="Control" parent="." unique_id=1076752579 instance=ExtResource("9_gynbo")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme = ExtResource("3_d6de3")
+script = ExtResource("10_phqm7")
