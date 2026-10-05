@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Theme" path="res://addons/quests/ui/default_theme.tres" id="1_4om0r"]
+[ext_resource type="Script" path="res://addons/quests/ui/quest_default_alert_ui.gd" id="2_0w5ng"]
+
+[node name="QuestAlertUI" type="Control" unique_id=1076752579]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme = ExtResource("1_4om0r")
+script = ExtResource("2_0w5ng")
+
+[node name="Content" type="VBoxContainer" parent="." unique_id=1247309254]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_left = 0.3
+anchor_right = 0.7
+offset_top = 24.0
+mouse_filter = 2
