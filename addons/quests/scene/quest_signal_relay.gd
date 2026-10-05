@@ -63,6 +63,6 @@ func relay(arg0: Variant = null, _arg1: Variant = null, _arg2: Variant = null, _
 	Quests.send_message(message, parameter, sent_value, sender, target_id)
 
 
-## Sends the configured message with the literal value. Handy for UnityEvent-style wiring.
+## Sends the configured message with the literal value. Handy for wiring from the editor.
 func trigger() -> void:
 	relay()

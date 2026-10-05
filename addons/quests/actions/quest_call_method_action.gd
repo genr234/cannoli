@@ -1,7 +1,7 @@
 class_name QuestCallMethodAction
 extends QuestAction
-## Calls a method on scene nodes. Replaces the original's scene events and
-## UnityEvent actions.
+## Calls a method on scene nodes. Replaces scene-event and event-list
+## actions.
 ##
 ## The target is a group name, the id of a [QuestIdentity], or a node name.
 ## Every matching node that has the method is called.
