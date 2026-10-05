@@ -30,6 +30,16 @@
       "path": "addons/save",
       "dependencies": [],
       "plugin": true
+    },
+    {
+      "id": "quests",
+      "name": "Quests",
+      "version": "0.1.0",
+      "category": "Gameplay",
+      "description": "Hand-written and procedurally generated quests with a graph editor, givers, journal, HUD, indicators and save support. Integrates with Relationships when installed. Requires Godot 4.7+.",
+      "path": "addons/quests",
+      "dependencies": [],
+      "plugin": true
     }
   ]
 }
