@@ -11,6 +11,11 @@ func before_each() -> void:
 	make_manager()
 
 
+func after_each() -> void:
+	fx = null
+	QuestGeneratorData.reset_static_state()
+
+
 func _make_npc() -> QuestGeneratorEntity:
 	var npc := Node.new()
 	var giver := QuestGiver.new()
@@ -36,7 +41,7 @@ func _make_quest(world: QuestWorldModel, return_to_complete: bool, reward_system
 	builder.rng.seed = 42
 	var no_contents: Array[QuestContent] = []
 	var quest := builder.convert_plan_to_quest(generator, "Village", plan.goal, plan.motive, plan, return_to_complete, no_contents, reward_systems)
-	return quest
+	return track_quest(quest)
 
 
 func _on_heard(args: QuestMessageArgs) -> void:
@@ -192,7 +197,7 @@ func test_generated_quest_serializes() -> void:
 	var quest := await _make_quest(fx.new_world_model(3), true)
 	var data := QuestSerializer.quest_to_dict(quest)
 	var json := JSON.stringify(data)
-	var restored := QuestSerializer.dict_to_quest(JSON.parse_string(json))
+	var restored := track_quest(QuestSerializer.dict_to_quest(JSON.parse_string(json)))
 	assert_eq(restored.id, quest.id, "id survives")
 	assert_eq(restored.node_list.size(), quest.node_list.size(), "nodes survive")
 	assert_eq(restored.counter_list.size(), quest.counter_list.size(), "counters survive")
@@ -213,3 +218,59 @@ func test_quest_with_return_node_completes_after_discussing() -> void:
 	QuestMessages.send("player", "captain", QuestMessages.DISCUSSED_QUEST, quest.id)
 	assert_eq(quest.get_state(), Quest.State.SUCCESSFUL, "quest succeeds after returning to the giver")
 	quest.dispose()
+
+
+class RecordingBuilder extends QuestPlanToQuestBuilder:
+	var built: Quest
+
+	func convert_plan_to_quest(entity: QuestEntity, group: String, goal: QuestPlanStep, motive: QuestMotive, plan: QuestPlan,
+			require_return_to_complete: bool, rewards_ui_contents: Array[QuestContent], reward_systems: Array[QuestRewardSystem]) -> Quest:
+		built = super.convert_plan_to_quest(entity, group, goal, motive, plan, require_return_to_complete, rewards_ui_contents, reward_systems)
+		return built
+
+
+func _generate_with(recorder: RecordingBuilder, callback: Callable) -> void:
+	var generator := _make_npc()
+	var planner := QuestPlanner.new()
+	planner.frame_slicing = false
+	planner.rng.seed = 42
+	planner.plan_to_quest_builder = recorder
+	var no_contents: Array[QuestContent] = []
+	var no_systems: Array[QuestRewardSystem] = []
+	var no_quests: Array[Quest] = []
+	planner.generate_quest(generator, "Village", fx.village, fx.new_world_model(3), false, no_contents, no_systems, no_quests,
+			callback, null, false)
+	await frames(2)
+
+
+func test_quest_is_disposed_when_nobody_takes_it() -> void:
+	var recorder := RecordingBuilder.new()
+	await _generate_with(recorder, Callable())
+	assert_not_null(recorder.built, "a quest was built")
+	assert_eq(recorder.built.get_state(), Quest.State.DISABLED, "but it was disposed of because there is no callback")
+
+
+func test_quest_is_handed_to_the_callback() -> void:
+	var recorder := RecordingBuilder.new()
+	var received: Array[Quest] = []
+	await _generate_with(recorder, func(q: Quest) -> void: received.append(q))
+	assert_eq(received.size(), 1, "the callback was called once")
+	track_quest(received[0])
+	assert_eq(received[0], recorder.built, "with the quest that was built")
+	assert_ne(received[0].get_state(), Quest.State.DISABLED, "which is left for the receiver to dispose of")
+
+
+func test_message_reward_can_use_the_reward_action_format() -> void:
+	var coins := QuestMessageRewardSystem.new()
+	assert_eq(coins.message, "Get", "the original defaults are kept")
+	assert_eq(coins.parameter, "Coin", "parameter")
+	coins.use_reward_message_format("gold")
+	var quest := Quest.create("q")
+	coins.determine_reward(10, quest)
+	var action := quest.get_state_info(Quest.State.SUCCESSFUL).action_list[-1] as QuestMessageAction
+	assert_eq(action.message, QuestRewardAction.REWARD_MESSAGE, "same message as the reward action")
+	assert_eq(action.parameter, "gold", "reward id as parameter")
+	assert_eq(action.value.int_value, 10, "amount as value")
+	assert_eq(action.sender_id, QuestTags.QUESTGIVERID, "sent by the giver")
+	assert_eq(action.target_id, QuestTags.QUESTERID, "to the quester")
+	coins.free()

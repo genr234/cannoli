@@ -24,8 +24,10 @@ extends Resource
 ## The name of a faction in the Relationships addon. If set, and the addon is
 ## available, affinities come from it instead of [member faction].
 @export var relationships_faction := ""
-## Parent types from which this type inherits factions, urgency functions and verbs.
-@export var parents: Array[QuestEntityType] = []
+## Parent types ([QuestEntityType]s) from which this type inherits factions,
+## urgency functions and verbs. Untyped with a resource hint because a typed
+## array of the script's own class would keep the script alive at exit.
+@export_custom(PROPERTY_HINT_TYPE_STRING, "24/17:QuestEntityType") var parents: Array = []
 ## Functions that generators use to decide how urgently they must generate a quest about this entity.
 @export var urgency_functions: Array[QuestUrgencyFunction] = []
 ## Verbs that can be performed on this entity type.
@@ -40,6 +42,9 @@ extends Resource
 @export var original_drive_values: Array[QuestDriveValue] = []
 ## Multipliers for reward systems, indexed by [enum QuestRewardMultiplier.Category].
 @export var reward_multipliers: PackedFloat32Array = PackedFloat32Array([1, 1, 1, 1, 1, 1, 1, 1])
+
+var _runtime_drive_values: Array[QuestDriveValue] = []
+var _has_runtime_drive_values := false
 
 ## The runtime drive values, which can change during play. Initially copies of
 ## [member original_drive_values].
@@ -84,7 +89,8 @@ func _get_faction(depth: int) -> QuestFaction:
 		return faction
 	if depth > 64:
 		return null
-	for parent in parents:
+	for parent_type in parents:
+		var parent := parent_type as QuestEntityType
 		if parent == null:
 			continue
 		var result := parent._get_faction(depth + 1)
@@ -103,7 +109,8 @@ func _get_relationships_faction(depth: int) -> String:
 		return relationships_faction
 	if depth > 64:
 		return ""
-	for parent in parents:
+	for parent_type in parents:
+		var parent := parent_type as QuestEntityType
 		if parent == null:
 			continue
 		var result := parent._get_relationships_faction(depth + 1)
@@ -118,7 +125,7 @@ func get_urgency_functions() -> Array[QuestUrgencyFunction]:
 	if not parents.is_empty():
 		var checked: Array[QuestEntityType] = []
 		for parent in parents:
-			_add_parent_urgency_functions(parent, checked, list)
+			_add_parent_urgency_functions(parent as QuestEntityType, checked, list)
 	return list
 
 
@@ -130,7 +137,7 @@ func _add_parent_urgency_functions(parent: QuestEntityType, checked: Array[Quest
 		if not list.has(function):
 			list.append(function)
 	for grandparent in parent.parents:
-		_add_parent_urgency_functions(grandparent, checked, list)
+		_add_parent_urgency_functions(grandparent as QuestEntityType, checked, list)
 
 
 ## All verbs that can be performed on this entity type, including inherited ones.
@@ -150,7 +157,8 @@ func get_all_actions() -> Array[QuestVerb]:
 		if et == null:
 			continue
 		processed.append(et)
-		for parent in et.parents:
+		for parent_type in et.parents:
+			var parent := parent_type as QuestEntityType
 			if parent != null and not processed.has(parent):
 				queue.append(parent)
 		for action in et.actions:
@@ -172,7 +180,8 @@ func _look_up_drive_value(drive: QuestDrive, checked: Array) -> QuestDriveValue:
 			return dv
 	if not parents.is_empty():
 		checked.append(self)
-		for parent in parents:
+		for parent_type in parents:
+			var parent := parent_type as QuestEntityType
 			if parent == null:
 				continue
 			var result := parent._look_up_drive_value(drive, checked)

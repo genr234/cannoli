@@ -78,6 +78,7 @@ func get_quest_list() -> QuestList:
 
 
 ## Adds reward systems found as children or siblings to [member reward_systems].
+## Reward systems whose process mode is disabled are skipped.
 func record_reward_systems() -> void:
 	var parent := get_parent()
 	var roots: Array[Node] = [self]
@@ -86,7 +87,7 @@ func record_reward_systems() -> void:
 	for root in roots:
 		for child in root.get_children():
 			var reward_system := child as QuestRewardSystem
-			if reward_system != null and not reward_systems.has(reward_system):
+			if reward_system != null and not reward_systems.has(reward_system) and reward_system.process_mode != Node.PROCESS_MODE_DISABLED:
 				reward_systems.append(reward_system)
 
 
@@ -124,11 +125,20 @@ func generate_quest() -> void:
 func _apply_manager_settings() -> void:
 	var manager := QuestManager.instance
 	if manager == null:
+		QuestGeneratorData.apply_settings() # Makes sure a player domain type exists.
 		return
 	QuestPlanner.max_simultaneous_planners = manager.max_simultaneous_planners
 	QuestPlanner.max_goal_action_checks_per_frame = manager.max_goal_action_checks_per_frame
 	QuestPlanner.max_steps_per_frame = manager.max_steps_per_frame
 	QuestPlanner.detailed_debug = manager.debug_generator
+	# Generator settings the manager may offer, as in the original configuration.
+	var player_domain := manager.get(&"default_player_domain_type") as QuestDomainType
+	if player_domain != null:
+		QuestGeneratorData.default_player_domain_type = player_domain
+	var selection := manager.get(&"goal_selection_mode") as QuestUrgentFactSelectionMode
+	if selection != null:
+		QuestGeneratorData.global_goal_selection = selection
+	QuestGeneratorData.apply_settings()
 
 
 ## Quests that the planner should avoid generating goals for.
@@ -150,8 +160,12 @@ func _on_generated_quest(quest: Quest) -> void:
 		return
 	var list := get_quest_list()
 	if list != null and is_inside_tree() and get_generated_quest_count() < max_quests_to_generate:
-		list.add_quest(quest)
-		generated_quest.emit(quest)
+		var added := list.add_quest(quest)
+		if added != null:
+			generated_quest.emit(added)
+			return
+	# Not taken: a generated quest is a runtime instance, so it must be disposed of.
+	quest.dispose(true)
 
 
 ## Builds the world model from the observed domains, then lets listeners change it.

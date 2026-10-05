@@ -3,7 +3,7 @@ extends QuestsTest
 
 func test_builder_creates_start_node_and_lists() -> void:
 	var builder := QuestBuilder.new("Wolves", "wolves_quest", "Wolf Hunt")
-	var quest := builder.to_quest()
+	var quest := track_quest(builder.to_quest())
 	assert_eq(quest.id, "wolves_quest", "id")
 	assert_eq(quest.title, "Wolf Hunt", "title")
 	assert_eq(quest.node_list.size(), 1, "start node only")
@@ -14,6 +14,7 @@ func test_builder_creates_start_node_and_lists() -> void:
 
 func test_counters_and_events() -> void:
 	var builder := QuestBuilder.new("q")
+	track_quest(builder.quest)
 	var counter := builder.add_counter("wolves", 0, 0, 5, false, QuestCounter.UpdateMode.MESSAGES)
 	assert_true(counter != null, "counter added")
 	assert_true(builder.add_counter("wolves", 0, 0, 5, false, QuestCounter.UpdateMode.MESSAGES) == null, "duplicate refused")
@@ -24,6 +25,7 @@ func test_counters_and_events() -> void:
 
 func test_nodes_link_by_id() -> void:
 	var builder := QuestBuilder.new("q")
+	track_quest(builder.quest)
 	var a := builder.add_condition_node(builder.get_start_node(), "a", "A")
 	var b := builder.add_passthrough_node(a, "b", "B")
 	var failure := builder.add_failure_node(b)
@@ -38,6 +40,7 @@ func test_nodes_link_by_id() -> void:
 
 func test_content_and_actions() -> void:
 	var builder := QuestBuilder.new("q", "q", "Quest")
+	track_quest(builder.quest)
 	builder.add_offer_contents([builder.create_title_content(), builder.create_body_content("Hello")])
 	builder.add_offer_unmet_contents([builder.create_heading_content("Not yet", 2)])
 	var quest := builder.quest
@@ -66,7 +69,8 @@ func test_built_quest_runs_with_counter_and_message_conditions() -> void:
 	var report := builder.add_condition_node(kill, "report", "Report")
 	builder.add_message_condition(report, QuestMessages.Participant.ANY, "", QuestMessages.Participant.ANY, "", "Reported", "hunt")
 	builder.add_success_node(report)
-	var quest := builder.to_quest().clone()
+	var asset := track_quest(builder.to_quest())
+	var quest := make_quest_instance(asset)
 	quest.set_state(Quest.State.ACTIVE)
 	QuestMessages.send(null, null, "Killed", "Wolf")
 	assert_eq(quest.get_counter("wolves").current_value, 1, "one wolf")
@@ -77,4 +81,14 @@ func test_built_quest_runs_with_counter_and_message_conditions() -> void:
 	await frames(2) # Message conditions start listening a frame after their node becomes active.
 	QuestMessages.send(null, null, "Reported", "hunt")
 	assert_eq(quest.get_state(), Quest.State.SUCCESSFUL, "quest succeeds")
-	quest.dispose()
+
+
+func test_dispose_releases_a_discarded_quest() -> void:
+	var builder := QuestBuilder.new("discard", "discard_quest", "Discard")
+	var quest := builder.to_quest()
+	Quests.register_quest_instance(quest)
+	builder.dispose()
+	assert_null(builder.quest, "the builder lets go of the quest")
+	assert_eq(quest.get_state(), Quest.State.DISABLED, "the quest was disposed of")
+	assert_null(Quests.get_quest_instance("discard_quest"), "and unregistered")
+	builder.dispose()

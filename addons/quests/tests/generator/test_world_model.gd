@@ -8,6 +8,11 @@ func before_each() -> void:
 	fx = QuestsGeneratorFixture.new()
 
 
+func after_each() -> void:
+	fx = null
+	QuestGeneratorData.reset_static_state()
+
+
 func test_threat_urgency_uses_affinity_and_count() -> void:
 	var wm := fx.new_world_model(3)
 	var urgency := wm.compute_urgency_simple()
@@ -140,7 +145,7 @@ func test_entity_type_helpers() -> void:
 	bus.is_unique = true
 	assert_eq(bus.get_descriptor(4), "Bus", "unique types are never plural")
 	var child := QuestEntityType.new()
-	child.parents = [fx.orc_type] as Array[QuestEntityType]
+	child.parents = [fx.orc_type]
 	assert_eq(child.get_faction(), fx.orc_faction, "faction inherited from parent")
 	assert_eq(child.get_all_actions().size(), 1, "actions inherited from parent")
 	assert_eq(child.get_urgency_functions().size(), 1, "urgency functions inherited from parent")
