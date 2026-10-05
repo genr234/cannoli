@@ -65,11 +65,15 @@ static func find_spawner(name_to_find: String) -> QuestSpawner:
 
 
 func _enter_tree() -> void:
+	add_to_group(&"quest_spawners")
 	if not _spawners.has(self):
 		_spawners.append(self)
 
 
 func _ready() -> void:
+	var manager := Quests.get_manager()
+	if manager != null:
+		manager.apply_pending_node_data("spawners", spawner_name, self)
 	QuestMessages.add_listener(self, QuestMessages.START_SPAWNER, spawner_name, _on_message)
 	QuestMessages.add_listener(self, QuestMessages.STOP_SPAWNER, spawner_name, _on_message)
 	QuestMessages.add_listener(self, QuestMessages.DESPAWN_SPAWNER, spawner_name, _on_message)

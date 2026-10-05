@@ -92,6 +92,8 @@ var cooldown_seconds_remaining := 0.0
 var time_remaining := 0.0
 ## The current speaker, if different from the quest giver. Null means the quest giver.
 var current_speaker: QuestParticipant
+## The quest giver's dialect, set by [method assign_quest_giver].
+var giver_text_table: Dictionary = {}
 ## Entity id -> [enum IndicatorState].
 var indicator_states := {}
 ## Ids of everyone who speaks in the quest or its nodes.
@@ -258,6 +260,8 @@ func assign_quest_giver(info: QuestParticipant) -> void:
 	quest_giver_id = info.id
 	if not info.id.is_empty() and not speakers.has(info.id):
 		speakers.append(info.id)
+	giver_text_table = info.text_table
+	QuestTags.add_tag_values_to_dictionary(tag_dictionary, info.text_table)
 	tag_dictionary[QuestTags.QUESTGIVERID] = info.id
 	tag_dictionary[QuestTags.QUESTGIVER] = info.display_name
 

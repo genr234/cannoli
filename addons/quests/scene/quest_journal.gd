@@ -11,7 +11,7 @@ extends QuestList
 ## Keep completed quests in the journal. If off, they are deleted when they end.
 @export var remember_completed_quests := true
 ## Delete completed generated quests even if completed quests are remembered.
-@export var only_remember_handwritten_quests := true
+@export var only_remember_handwritten_quests := false
 ## Remove what UIs no longer need from completed generated quests.
 @export var compress_completed_procgen_quests := false
 ## Tracking a quest stops tracking the others.

@@ -39,6 +39,7 @@ func _ready() -> void:
 				indicator = child
 				break
 	_initialize_states()
+	add_to_group(&"quest_indicator_managers")
 	QuestMessages.add_listener(self, QuestMessages.SET_INDICATOR_STATE, "", _on_message)
 	QuestMessages.add_listener(self, QuestMessages.REFRESH_INDICATOR, "", _on_message)
 	QuestMessages.add_listener(self, QuestMessages.REFRESH_UIS, "", _on_message)
@@ -46,6 +47,9 @@ func _ready() -> void:
 	if _connected_manager != null:
 		_connected_manager.quest_state_changed.connect(_on_quest_changed)
 		_connected_manager.quest_offerable.connect(_on_quest_changed)
+	var manager := _connected_manager
+	if manager != null and not _my_id.is_empty():
+		manager.apply_pending_node_data("indicators", _my_id, self)
 	repaint()
 
 

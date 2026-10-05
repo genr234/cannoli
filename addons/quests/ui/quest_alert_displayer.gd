@@ -15,12 +15,22 @@ func _exit_tree() -> void:
 	QuestMessages.remove_listener(self)
 
 
+# The last alert shown and the UI that showed it, so that two displayers that
+# share a UI never show the same alert twice.
+static var _last_args: WeakRef
+static var _last_ui: WeakRef
+
+
 func _on_alert(args: QuestMessageArgs) -> void:
 	var ui := alert_ui
 	if ui == null and QuestManager.instance != null:
 		ui = QuestManager.instance.alert_ui
 	if ui == null:
 		return
+	if _last_args != null and _last_args.get_ref() == args and _last_ui.get_ref() == ui:
+		return
+	_last_args = weakref(args)
+	_last_ui = weakref(ui)
 	var contents: Array[QuestContent] = []
 	if not args.values.is_empty() and args.values[0] is Array:
 		contents.assign(args.values[0])

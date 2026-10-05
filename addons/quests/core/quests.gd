@@ -44,6 +44,7 @@ static func reset_static_state() -> void:
 	generator_record_callback = Callable()
 	generator_apply_callback = Callable()
 	QuestMessages.clear_listeners()
+	QuestGeneratorData.reset_static_state()
 	QuestsTime.mode = QuestsTime.Mode.STANDARD
 	QuestsTime.reset()
 
@@ -327,6 +328,17 @@ static func give_quest_to_quester(quest_or_id: Variant, quester: Variant) -> Que
 	quest.set_state(Quest.State.ACTIVE)
 	QuestMessages.refresh_indicators(quest)
 	return quest
+
+
+## Abandons a quest in the quester's journal, if the quest is abandonable. See
+## [method QuestJournal.abandon_quest]. Returns true if the quest was found.
+static func abandon_quest(quest_id: String, quester_id := "") -> bool:
+	var quest := get_quest_instance(quest_id, quester_id)
+	var journal := get_journal(quester_id)
+	if quest == null or journal == null or journal.find_quest(quest_id) != quest:
+		return false
+	journal.abandon_quest(quest)
+	return true
 
 
 static func _resolve_journal(quester: Variant) -> QuestJournal:
