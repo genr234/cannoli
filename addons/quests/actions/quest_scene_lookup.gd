@@ -22,12 +22,9 @@ static func find_nodes(key: String) -> Array[Node]:
 	if not result.is_empty():
 		return result
 	var root := tree.root
-	for identity in root.find_children("*", "QuestIdentity", true, false):
-		if identity.get("id") == key:
-			var owner_node := identity.get_parent()
-			if owner_node != null and not result.has(owner_node):
-				result.append(owner_node)
-	if not result.is_empty():
+	var identity := QuestIdentity.find_by_id(key)
+	if identity != null and identity.get_parent() != null:
+		result.append(identity.get_parent())
 		return result
 	var by_name := root.find_child(key, true, false)
 	if by_name != null:

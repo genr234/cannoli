@@ -114,8 +114,8 @@ static func report_deed(actor: Variant, tag: String, target: Variant, magnitude 
 		push_warning("Quests: Relationships isn't available; can't report deed '%s'." % tag)
 		return false
 	var manager: Object = api.call("get_manager")
-	var actor_node := actor as Node
-	var target_node := target as Node
+	var actor_node: Node = actor if actor is Node else null
+	var target_node: Node = target if target is Node else null
 	if actor_node != null:
 		var reporter := _find_near(actor_node, "DeedReporter")
 		if reporter != null:
