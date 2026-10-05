@@ -136,6 +136,8 @@ static func _replace_tag(tag: String, quest: Quest, quest_tags: Dictionary, node
 		return _replace_counter_tag(tag, quest, _CounterTagType.CURRENT)
 	if tag.begins_with(COUNTER_TIME_VALUE_TAG_PREFIX):
 		return _replace_counter_tag(tag, quest, _CounterTagType.AS_TIME)
+	if tag == QUESTGIVERID and quest != null and not quest.quest_giver_id.is_empty() and not quest_tags.has(tag):
+		return quest.quest_giver_id
 	if node_tags.has(tag):
 		return str(node_tags[tag])
 	if quest_tags.has(tag):
