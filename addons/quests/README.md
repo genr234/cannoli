@@ -159,11 +159,3 @@ With the Save addon enabled, `QuestManager` registers a `quests` section by itse
 ## Time
 
 Timers, cooldowns and time limits use `QuestsTime`, which follows the scene tree by default (respects `Engine.time_scale`, stops while paused). Set `QuestsTime.mode` to `REALTIME`, or `MANUAL` to drive it yourself.
-
-## Tests
-
-From a project that contains the addon:
-
-```
-godot --headless --script res://addons/quests/tests/run_tests.gd [-- path_filter]
-```
