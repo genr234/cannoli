@@ -26,7 +26,7 @@ func _contents(list: Array) -> Array[QuestContent]:
 
 func test_alert_message_shows_once_and_emits_manager_signal() -> void:
 	var manager := make_manager()
-	var ui := CountingAlertUI.new()
+	var ui := add_node(CountingAlertUI.new()) as CountingAlertUI
 	manager.alert_ui = ui
 	var displayer := QuestAlertDisplayer.new()
 	add_node(displayer)
@@ -39,7 +39,7 @@ func test_alert_message_shows_once_and_emits_manager_signal() -> void:
 
 func test_two_displayers_sharing_a_ui_show_once() -> void:
 	var manager := make_manager()
-	var ui := CountingAlertUI.new()
+	var ui := add_node(CountingAlertUI.new()) as CountingAlertUI
 	manager.alert_ui = ui
 	add_node(QuestAlertDisplayer.new())
 	add_node(QuestAlertDisplayer.new())
@@ -51,7 +51,7 @@ func test_two_displayers_sharing_a_ui_show_once() -> void:
 
 func test_alert_action_shows_once() -> void:
 	var manager := make_manager()
-	var ui := CountingAlertUI.new()
+	var ui := add_node(CountingAlertUI.new()) as CountingAlertUI
 	manager.alert_ui = ui
 	add_node(QuestAlertDisplayer.new())
 	var action := QuestAlertAction.new()
@@ -65,7 +65,7 @@ func test_alert_action_shows_once() -> void:
 
 func test_quest_control_alert_shows_once() -> void:
 	var manager := make_manager()
-	var ui := CountingAlertUI.new()
+	var ui := add_node(CountingAlertUI.new()) as CountingAlertUI
 	manager.alert_ui = ui
 	add_node(QuestAlertDisplayer.new())
 	var control := QuestControl.new()
