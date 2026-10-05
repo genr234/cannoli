@@ -19,6 +19,9 @@ signal dialogue_ended()
 
 ## The dialogue UI. If null, the [QuestManager]'s is used.
 @export var dialogue_ui: QuestDialogueUI
+## This giver's dialect: words used for [code]{Word}[/code] tags in the text of its quests.
+## A value may list alternatives separated by [code]|[/code].
+@export var text_table: Dictionary[String, String] = {}
 ## Content to show when there is nothing else to say and no content for that case.
 @export var greeting_content: Array[QuestContent]
 ## Content to show when there are no quests to discuss.
@@ -91,6 +94,12 @@ func get_dialogue_ui() -> QuestDialogueUI:
 
 ## The completed quest dialogue mode with SAME_AS_GLOBAL resolved.
 ## Returns SHOW_COMPLETED_QUEST or SHOW_NO_QUESTS.
+func get_participant() -> QuestParticipant:
+	var participant := super()
+	participant.text_table = text_table
+	return participant
+
+
 func get_completed_quest_dialogue_mode() -> CompletedQuestDialogueMode:
 	if completed_quest_dialogue_mode == CompletedQuestDialogueMode.SAME_AS_GLOBAL:
 		var manager := Quests.get_manager()
@@ -321,6 +330,7 @@ func start_dialogue(player: Node = null) -> void:
 			_connected_ui.closed.disconnect(_on_dialogue_closed)
 		_connected_ui = ui
 		ui.closed.connect(_on_dialogue_closed)
+	QuestTags.fallback_text_table = text_table
 	_player = player
 	if not _setup_player_list():
 		return

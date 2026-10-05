@@ -38,6 +38,10 @@ const TARGETS := "{TARGETS}"
 const COUNTERGOAL := "{COUNTERGOAL}"
 const REWARD := "{REWARD}"
 
+## Dialect used for word tags when the quest has no speaker or giver table. A quest
+## giver sets this when it starts a dialogue.
+static var fallback_text_table: Dictionary = {}
+
 enum _CounterTagType { CURRENT, MIN, MAX, AS_TIME }
 
 static var _regex: RegEx
@@ -92,6 +96,38 @@ static func add_tags_to_dictionary(tag_dictionary: Dictionary, text: String) -> 
 
 
 ## Translates [param text] and replaces the tags in it using [param quest].
+## Replaces the values of the word tags in [param tag_dictionary] with the text in
+## [param text_table], choosing one of the alternatives separated by [code]|[/code].
+## ID tags and tags the table doesn't define are left alone.
+static func add_tag_values_to_dictionary(tag_dictionary: Dictionary, text_table: Dictionary) -> void:
+	if text_table.is_empty():
+		return
+	for tag: String in tag_dictionary.keys():
+		if tag.length() <= 2 or is_id_tag(tag):
+			continue
+		var field_name := tag.substr(1, tag.length() - 2).strip_edges()
+		if text_table.has(field_name):
+			tag_dictionary[tag] = _pick_alternative(str(text_table[field_name]), "")
+
+
+static func _pick_alternative(text: String, seed_text: String) -> String:
+	if not text.contains("|"):
+		return text
+	var options := text.split("|")
+	if seed_text.is_empty():
+		return options[randi() % options.size()]
+	return options[absi(hash(seed_text)) % options.size()]
+
+
+static func _get_text_table(quest: Quest) -> Dictionary:
+	if quest != null:
+		if quest.current_speaker != null and not quest.current_speaker.text_table.is_empty():
+			return quest.current_speaker.text_table
+		if not quest.giver_text_table.is_empty():
+			return quest.giver_text_table
+	return fallback_text_table
+
+
 static func replace_tags(text: String, quest: Quest) -> String:
 	if text.is_empty():
 		return text
@@ -138,11 +174,14 @@ static func _replace_tag(tag: String, quest: Quest, quest_tags: Dictionary, node
 		return _replace_counter_tag(tag, quest, _CounterTagType.AS_TIME)
 	if tag == QUESTGIVERID and quest != null and not quest.quest_giver_id.is_empty() and not quest_tags.has(tag):
 		return quest.quest_giver_id
-	if node_tags.has(tag):
+	if node_tags.has(tag) and (not str(node_tags[tag]).is_empty() or is_id_tag(tag)):
 		return str(node_tags[tag])
-	if quest_tags.has(tag):
+	if quest_tags.has(tag) and (not str(quest_tags[tag]).is_empty() or is_id_tag(tag)):
 		return str(quest_tags[tag])
 	var field_name := tag.substr(1, tag.length() - 2).strip_edges()
+	var table := _get_text_table(quest)
+	if table.has(field_name):
+		return _pick_alternative(str(table[field_name]), (quest.id if quest != null else "") + tag)
 	return TranslationServer.translate(field_name)
 
 
