@@ -213,6 +213,7 @@ func initialize() -> void:
 ## Wires the runtime references: quest, nodes, subassets and tags. Doesn't
 ## change counter values.
 func set_runtime_references() -> void:
+	_content_by_id.clear()
 	_time_cooldown_last_checked = QuestsTime.now()
 	_time_limit_last_checked = QuestsTime.now()
 	if autostart_condition_set == null:
@@ -549,13 +550,18 @@ func is_speaker_quest_giver(speaker: QuestParticipant) -> bool:
 ## True if [method get_content_list] would return anything.
 func has_content(category: QuestContent.Category, speaker: QuestParticipant = null) -> bool:
 	var speaker_is_giver := is_speaker_quest_giver(speaker)
-	current_speaker = null if speaker_is_giver else speaker
 	if speaker_is_giver and get_state_info(state).has_content(category):
 		return true
+	# Nodes filter dialogue by the current speaker, so set it only for the query.
+	var previous_speaker := current_speaker
+	current_speaker = null if speaker_is_giver else speaker
+	var result := false
 	for node in node_list:
 		if node.has_content(category):
-			return true
-	return false
+			result = true
+			break
+	current_speaker = previous_speaker
+	return result
 
 
 ## The UI content for [param category], from the quest's current state and all
@@ -573,17 +579,12 @@ func _add_to_content_list(result: Array[QuestContent], to_add: Array[QuestConten
 	for content in to_add:
 		if content == null:
 			continue
-		if _is_link(content):
-			var linked := get_content_by_id(int(content.get("linked_content_id")))
+		if content is QuestLinkContent:
+			var linked := get_content_by_id(content.linked_content_id)
 			if linked != null:
 				result.append(linked)
 		else:
 			result.append(content)
-
-
-# Link content belongs to the content classes, so look for it by name.
-func _is_link(content: QuestContent) -> bool:
-	return content.get_type_name() == "QuestLinkContent" and content.get("linked_content_id") != null
 
 
 func assign_content_id(content: QuestContent) -> void:
@@ -591,6 +592,7 @@ func assign_content_id(content: QuestContent) -> void:
 		return
 	content.content_id = next_content_id
 	next_content_id += 1
+	_content_by_id.clear()
 
 
 func get_content_by_id(content_id: int) -> QuestContent:
@@ -604,19 +606,21 @@ func get_content_by_id(content_id: int) -> QuestContent:
 
 func _find_content_by_id(content_id: int) -> QuestContent:
 	var found := _find_in_list(content_id, offer_content_list)
-	if found == null:
-		found = _find_in_list(content_id, offer_conditions_unmet_content_list)
-	if found == null:
-		for i in NUM_STATES - 1:
-			found = _find_in_state_info(content_id, get_state_info(i as State))
+	if found != null:
+		return found
+	found = _find_in_list(content_id, offer_conditions_unmet_content_list)
+	if found != null:
+		return found
+	for i in NUM_STATES:
+		found = _find_in_state_info(content_id, get_state_info(i as State))
+		if found != null:
+			return found
+	for node in node_list:
+		for i in QuestNode.NUM_STATES:
+			found = _find_in_state_info(content_id, node.get_state_info(i as QuestNode.State))
 			if found != null:
 				return found
-		for node in node_list:
-			for i in QuestNode.NUM_STATES:
-				found = _find_in_state_info(content_id, node.get_state_info(i as QuestNode.State))
-				if found != null:
-					return found
-	return found
+	return null
 
 
 func _find_in_list(content_id: int, content_list: Array[QuestContent]) -> QuestContent:
@@ -667,6 +671,7 @@ func clear_indicator_states() -> void:
 func compress_generated_content() -> void:
 	if not is_procedurally_generated or not (state == State.SUCCESSFUL or state == State.FAILED):
 		return
+	_content_by_id.clear()
 	_clear_condition_set(autostart_condition_set)
 	_clear_condition_set(offer_condition_set)
 	offer_conditions_unmet_content_list.clear()
