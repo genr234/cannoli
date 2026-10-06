@@ -40,6 +40,16 @@
       "path": "addons/quests",
       "dependencies": [],
       "plugin": true
+    },
+    {
+      "id": "juice",
+      "name": "Juice",
+      "version": "0.1.0",
+      "category": "Effects",
+      "description": "Game feel: tweens, shakes, flashes, hit stops, springs, sounds, rumble and floating text, played in sequence from a JuicePlayer. Requires Godot 4.7+.",
+      "path": "addons/juice",
+      "dependencies": [],
+      "plugin": true
     }
   ]
 }
