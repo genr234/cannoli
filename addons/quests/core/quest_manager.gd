@@ -83,6 +83,8 @@ func _exit_tree() -> void:
 
 
 func _ready() -> void:
+	if instance != self:
+		return
 	if hide_dialogue_ui_on_start and dialogue_ui != null:
 		dialogue_ui.hide()
 	if hide_journal_ui_on_start and journal_ui != null:

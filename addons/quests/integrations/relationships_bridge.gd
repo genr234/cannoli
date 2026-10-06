@@ -166,7 +166,8 @@ static func _get_script(global_name: String) -> Script:
 
 
 # Finds a node whose script has the given global class name on [param node], below
-# it, or on its ancestors and their direct children.
+# it, or on its ancestors and their direct children. The ancestor search stops at
+# the node's owner (the root of its scene) when it has one.
 static func _find_near(node: Node, global_name: String) -> Node:
 	if node == null:
 		return null
@@ -180,6 +181,8 @@ static func _find_near(node: Node, global_name: String) -> Node:
 		for child in ancestor.get_children():
 			if _has_global_name(child, global_name):
 				return child
+		if ancestor == node.owner:
+			break
 		ancestor = ancestor.get_parent()
 	return null
 

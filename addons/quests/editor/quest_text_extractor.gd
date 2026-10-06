@@ -3,7 +3,7 @@ extends RefCounted
 ## Finds the player-facing strings in quest, database and generator resources:
 ## titles, groups, content text, counter display names and verb texts. Words in
 ## {Word} tags are included too, because the tags are looked up with tr() at
-## runtime. Used by the translation parser plugin, and usable from tests and tools.
+## runtime. Used by the translation parser plugin, and usable from scripts and tools.
 
 ## Translatable string properties by class. A subclass also uses the entries of
 ## its parents.

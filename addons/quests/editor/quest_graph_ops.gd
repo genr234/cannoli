@@ -2,7 +2,7 @@ class_name QuestGraphOps
 extends RefCounted
 ## Pure editing operations on a quest's node graph and counters. Used by the
 ## quest editor canvas, the wizards and the templates. Nothing here depends on
-## editor-only APIs, so it is safe to call from tests and tools.
+## editor-only APIs, so it is safe to call from scripts and tools.
 
 const NODE_SIZE := Vector2(220, 110)
 const NODE_PADDING := 55.0

@@ -30,7 +30,7 @@ static var _completed_quest_ids := {}
 static var _save_section := "quests"
 
 
-## Clears all registries and static settings. Mainly for tests.
+## Clears all registries and static settings. Used when restarting a game session.
 static func reset_static_state() -> void:
 	_quest_lists.clear()
 	_quest_assets.clear()
