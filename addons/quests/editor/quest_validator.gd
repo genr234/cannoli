@@ -1,7 +1,7 @@
 class_name QuestValidator
 extends RefCounted
 ## Checks a quest (or every quest in a database or list) for authoring mistakes.
-## Does not use any editor-only API, so it can be called from tests and from
+## Does not use any editor-only API, so it can be called from tools and from
 ## game code. Every check has a severity so the editor can sort problems.
 
 enum Severity { WARNING, ERROR }

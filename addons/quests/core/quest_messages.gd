@@ -104,7 +104,7 @@ static func is_listener_registered(listener: Object, message: String, parameter 
 	return false
 
 
-## Removes every listener. Mainly for tests.
+## Removes every listener, such as when changing scenes.
 static func clear_listeners() -> void:
 	_listeners.clear()
 	_send_depth = 0
@@ -227,7 +227,10 @@ static func get_display_name(participant: Variant, default := "") -> String:
 
 ## Finds the node that identifies [param node]: the node itself, then its
 ## descendants, then its ancestors and their children, looking for a [QuestList], a
-## [QuestIdentity], or a node with a get_quest_id() method.
+## [QuestIdentity], or a node with a get_quest_id() method. The ancestor search
+## stops at [member Node.owner], the root of the scene [param node] was instanced
+## in, so it can't pick up another character's identity. Without an owner it
+## climbs to the root.
 static func find_identifiable(node: Node) -> Node:
 	if node == null:
 		return null
@@ -247,6 +250,8 @@ static func find_identifiable(node: Node) -> Node:
 		for sibling in ancestor.get_children():
 			if _is_identifiable(sibling):
 				return sibling
+		if ancestor == node.owner:
+			break
 		ancestor = ancestor.get_parent()
 	return null
 

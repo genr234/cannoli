@@ -93,7 +93,7 @@ static func reset_runtime_data() -> void:
 ## Discards runtime data and every static reference held by the generator
 ## (known entity types, the player domain and player entity type, the cached
 ## Relationships bridge, the planner counters), and restores the default global
-## goal selection (null). Call when tearing down, such as between tests.
+## goal selection (null). Call when tearing down, such as when leaving a scene.
 static func reset_static_state() -> void:
 	reset_runtime_data()
 	_known_types.clear()
