@@ -451,8 +451,11 @@ func _commit(packages: Array) -> void:
 	for pkg: Dictionary in installed:
 		var old := STAGING.path_join(pkg.id + ".old")
 		if DirAccess.dir_exists_absolute(old):
-			var trash_err := OS.move_to_trash(ProjectSettings.globalize_path(old))
-			if trash_err != OK:
+			if OS.move_to_trash(ProjectSettings.globalize_path(old)) != OK:
+				# Keep it under a unique name so it doesn't block the next update.
+				var kept := STAGING.path_join("%s.%d.old" % [pkg.id, int(Time.get_unix_time_from_system())])
+				if DirAccess.rename_absolute(old, kept) == OK:
+					old = kept
 				errors.append("%s was installed, but its previous version could not be moved to the trash; it is preserved at %s" % [pkg.name, old])
 	_cleanup()
 
