@@ -2,16 +2,6 @@
   "version": 1,
   "packages": [
     {
-      "id": "cannoli_example",
-      "name": "Example",
-      "version": "0.1.0",
-      "category": "Examples",
-      "description": "Placeholder package that prints a message when enabled.",
-      "path": "addons/cannoli_example",
-      "dependencies": [],
-      "plugin": true
-    },
-    {
       "id": "relationships",
       "name": "Relationships",
       "version": "1.0.0",
@@ -48,6 +38,16 @@
       "category": "Effects",
       "description": "Game feel: tweens, shakes, flashes, hit stops, springs, sounds, rumble and floating text, played in sequence from a JuicePlayer. Requires Godot 4.7+.",
       "path": "addons/juice",
+      "dependencies": [],
+      "plugin": true
+    },
+    {
+      "id": "behaviors",
+      "name": "Behaviors",
+      "version": "0.1.0",
+      "category": "AI",
+      "description": "Behavior trees with a graph editor, conditional aborts, shared variables, subtrees, utility AI, perception, steering and a live debugger. Integrates with Save, Relationships and Quests when installed. Requires Godot 4.7+.",
+      "path": "addons/behaviors",
       "dependencies": [],
       "plugin": true
     }

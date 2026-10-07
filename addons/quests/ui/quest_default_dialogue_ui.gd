@@ -12,6 +12,8 @@ extends QuestDialogueUI
 
 ## Move keyboard/gamepad focus to the first useful button when content changes.
 @export var auto_focus := true
+## Show the quest's title above its offer, unless the offer already starts with it.
+@export var show_title_on_offer := true
 
 ## The quest shown by the offer or active-quest views.
 var selected_quest: Quest
@@ -70,6 +72,8 @@ func show_offer_quest(speaker: QuestParticipant, quest: Quest, accept_handler: C
 	_accept_handler = accept_handler
 	_decline_handler = decline_handler
 	show_contents(speaker, quest.offer_content_list)
+	if show_title_on_offer:
+		_add_title_heading(quest)
 	_set_control_buttons(false, false, true)
 
 
@@ -86,16 +90,15 @@ func show_active_quest(speaker: QuestParticipant, quest: Quest, _continue_handle
 func show_completed_quest(speaker: QuestParticipant, quests: Array[Quest]) -> void:
 	if quests == null or quests.is_empty():
 		return
+	var all_contents: Array[QuestContent] = []
 	for quest in quests:
-		if quest == null:
-			continue
-		var contents := quest.get_content_list(QuestContent.Category.DIALOGUE)
-		if contents.is_empty():
-			continue
-		show_contents(speaker, contents)
-		_set_control_buttons(true, false, false)
-		if QuestContentView.contains_group_button(contents):
-			_set_control_buttons_interactable(false)
+		if quest != null:
+			all_contents.append_array(quest.get_content_list(QuestContent.Category.DIALOGUE))
+	if all_contents.is_empty():
+		return
+	show_contents(speaker, all_contents)
+	if QuestContentView.contains_group_button(all_contents):
+		_set_control_buttons_interactable(false)
 
 
 func show_quest_list(speaker: QuestParticipant, active_contents: Array[QuestContent], active_quests: Array[Quest],
@@ -151,6 +154,17 @@ func back() -> void:
 func set_back_handler(handler: Callable) -> void:
 	_back_handler = handler
 	back_button.visible = handler.is_valid()
+
+
+func _add_title_heading(quest: Quest) -> void:
+	var title := QuestUIHelpers.get_title(quest)
+	if title.is_empty():
+		return
+	var first := quest.offer_content_list[0] if not quest.offer_content_list.is_empty() else null
+	if first is QuestHeadingContent and first.get_text() == title:
+		return
+	var heading := content_view.add_heading(title, 2)
+	content_view.move_child(heading, 0)
 
 
 func _set_contents(speaker: QuestParticipant, contents: Array[QuestContent]) -> void:

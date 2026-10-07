@@ -21,7 +21,8 @@ func _exit_tree() -> void:
 
 func _enable_plugin() -> void:
 	# Show the picker right away when the user first enables the plugin.
-	_open.call_deferred()
+	if DisplayServer.get_name() != "headless":
+		_open.call_deferred()
 
 
 func _open() -> void:

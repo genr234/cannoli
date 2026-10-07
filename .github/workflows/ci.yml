@@ -14,3 +14,14 @@ jobs:
       - uses: actions/checkout@v5
       - run: python3 tools/validate_manifest.py
 
+  godot:
+    name: Godot 4.7 release smoke checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Godot
+        run: |
+          curl --fail --location --retry 3 https://github.com/godotengine/godot/releases/download/4.7-stable/Godot_v4.7-stable_linux.x86_64.zip -o /tmp/godot.zip
+          unzip /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.7-stable_linux.x86_64
+      - run: python3 tools/check_godot.py --godot /tmp/godot/Godot_v4.7-stable_linux.x86_64

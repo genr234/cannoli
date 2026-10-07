@@ -20,18 +20,26 @@ func _enter_tree() -> void:
 
 func _exit_tree() -> void:
 	var current := str(ProjectSettings.get_setting("autoload/Save", ""))
-	if current.ends_with("addons/save/save.gd"):
+	if _is_own_autoload(current):
 		remove_autoload_singleton(AUTOLOAD_NAME)
 
 
 func _ensure_autoload() -> void:
 	var current := str(ProjectSettings.get_setting("autoload/Save", ""))
-	if current.ends_with("addons/save/save.gd"):
+	if _is_own_autoload(current):
 		return
 	if not current.is_empty():
 		push_error("Save: an autoload named Save already exists (%s). Disable it or the Save plugin cannot register." % current)
 		return
 	add_autoload_singleton(AUTOLOAD_NAME, AUTOLOAD_PATH)
+
+
+func _is_own_autoload(value: String) -> bool:
+	var path := value.trim_prefix("*")
+	if path.begins_with("uid://"):
+		var uid := ResourceUID.text_to_id(path)
+		return ResourceUID.has_id(uid) and ResourceUID.get_id_path(uid) == AUTOLOAD_PATH
+	return path == AUTOLOAD_PATH
 
 
 func _ensure_setting(setting_name: String, type: int, default_value: Variant, hint: int = PROPERTY_HINT_NONE, hint_string: String = "") -> bool:

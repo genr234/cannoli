@@ -448,10 +448,12 @@ func _commit(packages: Array) -> void:
 			errors.append("%s: %s" % [pkg.name, error])
 
 	# Replaced copies go to the trash so local edits can be recovered.
-	for pkg: Dictionary in packages:
+	for pkg: Dictionary in installed:
 		var old := STAGING.path_join(pkg.id + ".old")
 		if DirAccess.dir_exists_absolute(old):
-			remove_dir(old)
+			var trash_err := OS.move_to_trash(ProjectSettings.globalize_path(old))
+			if trash_err != OK:
+				errors.append("%s was installed, but its previous version could not be moved to the trash; it is preserved at %s" % [pkg.name, old])
 	_cleanup()
 
 	progress.emit(0.95, "Refreshing project…")
@@ -476,6 +478,8 @@ func _swap_in(pkg: Dictionary) -> String:
 	var target: String = "res://" + pkg.path
 	var staged := STAGING.path_join(pkg.id)
 	var old := STAGING.path_join(pkg.id + ".old")
+	if DirAccess.dir_exists_absolute(old):
+		return "a previous recovery copy exists at %s; recover or move it before retrying" % old
 	var cfg := target.path_join("plugin.cfg")
 	var had_old := DirAccess.dir_exists_absolute(target)
 	var was_enabled := had_old and EditorInterface.is_plugin_enabled(cfg)
@@ -493,7 +497,9 @@ func _swap_in(pkg: Dictionary) -> String:
 	var err := DirAccess.rename_absolute(staged, target)
 	if err != OK:
 		if had_old:
-			DirAccess.rename_absolute(old, target)
+			var restore_err := DirAccess.rename_absolute(old, target)
+			if restore_err != OK:
+				return "installation failed (%s) and restoration failed (%s); the previous version is preserved at %s" % [error_string(err), error_string(restore_err), old]
 			if was_enabled:
 				EditorInterface.set_plugin_enabled(cfg, true)
 		return "could not move the new version into place (%s)" % error_string(err)
@@ -559,9 +565,18 @@ static func delete_recursive(path: String) -> Error:
 
 ## Removes the staging folder and downloaded archives.
 func _cleanup() -> void:
-	for path in [STAGING, DOWNLOADS]:
-		if DirAccess.dir_exists_absolute(path):
-			delete_recursive(path)
+	# Recovery copies survive failed rollback, cancellation and subsequent installs.
+	var staging := DirAccess.open(STAGING)
+	if staging != null:
+		staging.include_hidden = true
+		for folder in staging.get_directories():
+			if not folder.ends_with(".old"):
+				delete_recursive(STAGING.path_join(folder))
+		for file in staging.get_files():
+			DirAccess.remove_absolute(STAGING.path_join(file))
+		DirAccess.remove_absolute(STAGING)  # Only succeeds when no backups remain.
+	if DirAccess.dir_exists_absolute(DOWNLOADS):
+		delete_recursive(DOWNLOADS)
 
 
 func _set_cancellable(value: bool) -> void:

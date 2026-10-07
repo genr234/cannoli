@@ -221,6 +221,7 @@ func add_objective(objective: Dictionary) -> CheckBox:
 	box.set_pressed_no_signal(bool(objective.get("done", false)))
 	box.focus_mode = Control.FOCUS_NONE
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.theme_type_variation = &"QuestObjective"
 	box.name = "Objective"
 	_current_icon_list = null
 	_current_button_list = null

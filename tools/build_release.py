@@ -24,17 +24,23 @@ SKIP_SUFFIXES = (".import", ".tmp")
 def zip_folder(root: Path, rel_folder: str, out: Path) -> None:
     folder = root / rel_folder
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as archive:
-        for path in sorted(folder.rglob("*")):
+        license_path = root / "LICENSE"
+        for path in [license_path, *sorted(folder.rglob("*"))]:
+            if path == folder / "LICENSE":
+                continue  # The canonical root license is already included above.
             if not path.is_file() or path.name in SKIP_NAMES or path.name.endswith(SKIP_SUFFIXES):
                 continue
             # Fixed timestamps keep the zips reproducible.
-            info = zipfile.ZipInfo(path.relative_to(root).as_posix(), date_time=(2020, 1, 1, 0, 0, 0))
+            name = f"{rel_folder}/LICENSE" if path == license_path else path.relative_to(root).as_posix()
+            info = zipfile.ZipInfo(name, date_time=(2020, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o644 << 16
             archive.writestr(info, path.read_bytes())
 
 
 def build(out: Path, root: Path) -> None:
+    if not (root / "LICENSE").is_file():
+        raise ValueError("A LICENSE file is required for release packages")
     manifest = json.loads((root / "packages.json").read_text(encoding="utf-8"))
     out.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(root / "packages.json", out / "packages.json")

@@ -4,9 +4,9 @@ Listing **Cannoli Installer** lets people get it from the editor's AssetLib tab 
 
 ## Before submitting
 
-- [ ] **Add a `LICENSE` file.** The Asset Library only accepts assets with an open-source license (MIT is the most common choice for Godot addons). The repo doesn't have one yet.
+- [x] MIT license is included in the repository and release ZIPs.
 - [ ] Tag a release (e.g. `v1.1.0`) so the Releases page and the default install source exist.
-- [ ] Push `assets/icon.png` to `main` so the icon URL below resolves.
+- [x] `assets/icon.png` is tracked. Verify the public icon URL after pushing.
 
 ## Form values
 
@@ -14,14 +14,14 @@ Listing **Cannoli Installer** lets people get it from the editor's AssetLib tab 
 | --- | --- |
 | Asset name | Cannoli Installer |
 | Category | Tools |
-| Godot version | 4.2 |
+| Godot version | 4.7 |
 | Version | `1.1.0` (from `addons/cannoli_installer/plugin.cfg`) |
 | Repository host | GitHub |
 | Repository URL | `https://github.com/genr234/cannoli` |
 | Issues URL | `https://github.com/genr234/cannoli/issues` |
 | Download commit | Full hash of the release commit (`git rev-parse v1.1.0`) |
 | Icon URL | `https://raw.githubusercontent.com/genr234/cannoli/main/assets/icon.png` |
-| License | Whatever you choose in `LICENSE` |
+| License | MIT |
 
 **Description:**
 

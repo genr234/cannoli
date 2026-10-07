@@ -12,8 +12,8 @@ signal header_pressed()
 ## The container that holds the foldout's content. Built if left unset.
 @export var interior: Container
 ## Text drawn before the group name while expanded and collapsed.
-@export var expanded_prefix := "- "
-@export var collapsed_prefix := "+ "
+@export var expanded_prefix := "▾ "
+@export var collapsed_prefix := "▸ "
 
 var _title := ""
 
