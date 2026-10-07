@@ -25,6 +25,14 @@ def plugin_cfg_version(path: Path) -> str | None:
 
 def validate(root: Path) -> list[str]:
     errors: list[str] = []
+    license_path = root / "LICENSE"
+    if not license_path.is_file():
+        errors.append("LICENSE: missing release license")
+    installer_license = root / "addons" / SELF_ID / "LICENSE"
+    if not installer_license.is_file():
+        errors.append(f"{SELF_ID}: missing package LICENSE")
+    elif license_path.is_file() and installer_license.read_bytes() != license_path.read_bytes():
+        errors.append(f"{SELF_ID}: package LICENSE differs from the root LICENSE")
     try:
         manifest = json.loads((root / "packages.json").read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -63,6 +71,11 @@ def validate(root: Path) -> list[str]:
             if path != f"addons/{pkg_id}":
                 errors.append(f"{where}: path should be \"addons/{pkg_id}\"")
             folder = root / path
+            package_license = folder / "LICENSE"
+            if not package_license.is_file():
+                errors.append(f"{where}: missing {path}/LICENSE")
+            elif license_path.is_file() and package_license.read_bytes() != license_path.read_bytes():
+                errors.append(f"{where}: package LICENSE differs from the root LICENSE")
             if not folder.is_dir() or not any(p.is_file() for p in folder.rglob("*")):
                 errors.append(f"{where}: {path} is missing or empty")
             cfg = folder / "plugin.cfg"

@@ -17,9 +17,17 @@ signal tracking_toggled(quest: Quest, value: bool)
 @export var track_toggle: CheckBox
 ## Size of the built-in icon.
 @export var icon_size := Vector2(24, 24)
+## Color multiplier for the names of completed quests.
+@export var completed_modulate := Color(1, 1, 1, 0.6)
 
 ## The quest this row shows.
 var quest: Quest
+
+var _state_names := {
+	Quest.State.SUCCESSFUL: "Completed",
+	Quest.State.FAILED: "Failed",
+	Quest.State.ABANDONED: "Abandoned",
+}
 
 
 func _ready() -> void:
@@ -36,9 +44,20 @@ func assign(p_quest: Quest) -> void:
 	name_button.text = QuestUIHelpers.get_title(quest)
 	icon_rect.texture = quest.icon
 	icon_rect.visible = quest.icon != null
-	var can_track := quest.get_state() == Quest.State.ACTIVE and quest.is_trackable
+	var state := quest.get_state()
+	var can_track := state == Quest.State.ACTIVE and quest.is_trackable
 	track_toggle.visible = can_track
 	track_toggle.set_pressed_no_signal(quest.show_in_track_hud)
+	var completed := QuestUIHelpers.is_completed_state(state)
+	name_button.self_modulate = completed_modulate if completed else Color.WHITE
+	icon_rect.self_modulate = name_button.self_modulate
+	name_button.tooltip_text = tr(_state_names[state]) if completed else ""
+
+
+## Draws the name button as pressed while its quest is the selected one.
+func set_selected(value: bool) -> void:
+	_ensure_built()
+	name_button.set_pressed_no_signal(value)
 
 
 func _ensure_built() -> void:
@@ -56,6 +75,7 @@ func _ensure_built() -> void:
 		name_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		name_button.clip_text = true
 		name_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_button.toggle_mode = true
 		add_child(name_button)
 	if track_toggle == null:
 		track_toggle = CheckBox.new()

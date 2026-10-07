@@ -18,7 +18,12 @@ signal alert_shown()
 ## unique-named [code]%Items[/code] child, receives the alert's content view.
 @export var alert_container_template: PackedScene
 ## Use the container even for single-element content such as a single string.
-@export var always_use_container := false
+## On by default so alerts stay readable over any background.
+@export var always_use_container := true
+## Center alert text.
+@export var center_text := true
+## Seconds alerts take to fade in and out. 0 shows and hides them at once.
+@export var fade_duration := 0.25
 @export_group("Duration")
 ## Queue new alerts if an alert is currently showing. If your alert UI scrolls
 ## alerts, leave this off.
@@ -67,6 +72,7 @@ func show_alert_contents(quest_id: String, contents: Array[QuestContent]) -> voi
 	else:
 		view.set_contents(contents)
 		instance = _wrap_in_container(view)
+	_prepare(instance)
 	content_container.add_child(instance)
 	_instances.append(instance)
 	_timed_despawn(instance, get_display_duration(contents))
@@ -84,6 +90,7 @@ func show_alert(message: String) -> void:
 	var view := _make_view()
 	view.add_body(message)
 	var instance: Control = _wrap_in_container(view) if always_use_container else view
+	_prepare(instance)
 	content_container.add_child(instance)
 	_instances.append(instance)
 	_timed_despawn(instance, get_display_duration_for_text(message))
@@ -145,9 +152,29 @@ func _wrap_in_container(view: QuestContentView) -> Control:
 	return container
 
 
+# Alerts never take mouse input, so they can't block clicks meant for the game.
+func _prepare(instance: Control) -> void:
+	for node: Node in [instance] + instance.find_children("*", "Control", true, false):
+		var control := node as Control
+		control.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if not center_text:
+			continue
+		if control is Label:
+			(control as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		elif control is RichTextLabel:
+			(control as RichTextLabel).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		elif control is HFlowContainer:
+			(control as HFlowContainer).alignment = FlowContainer.ALIGNMENT_CENTER
+	if fade_duration > 0.0:
+		instance.modulate.a = 0.0
+		create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS).tween_property(instance, "modulate:a", 1.0, fade_duration)
+
+
 func _timed_despawn(instance: Control, duration: float) -> void:
 	_despawn_running = true
 	await get_tree().create_timer(duration, true).timeout
+	if is_instance_valid(instance) and fade_duration > 0.0:
+		await create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS).tween_property(instance, "modulate:a", 0.0, fade_duration).finished
 	if is_instance_valid(instance):
 		if leave_last_content_visible_during_hide and _instances.size() <= 1 and _queue.is_empty():
 			hide()

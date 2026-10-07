@@ -23,10 +23,13 @@ func _setup_session(session_id: int) -> void:
 	var tab := DebuggerTab.new()
 	var session := get_session(session_id)
 	_tabs[session_id] = tab
-	var send_watch := func() -> void:
-		if session.is_active():
-			session.send_message("relationships:watch", [tab.is_visible_in_tree()])
-	tab.visibility_changed.connect(send_watch)
-	session.started.connect(send_watch)
+	tab.visibility_changed.connect(_send_watch.bind(session_id))
+	session.started.connect(_send_watch.bind(session_id))
 	session.stopped.connect(tab.clear)
 	session.add_session_tab(tab)
+
+
+func _send_watch(session_id: int) -> void:
+	var session := get_session(session_id)
+	if session != null and session.is_active() and _tabs.has(session_id):
+		session.send_message("relationships:watch", [_tabs[session_id].is_visible_in_tree()])
