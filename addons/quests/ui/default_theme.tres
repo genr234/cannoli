@@ -1,5 +1,8 @@
 [gd_resource type="Theme" format=3]
 
+[ext_resource type="Texture2D" path="res://addons/quests/ui/objective_checked.svg" id="1_qobjc"]
+[ext_resource type="Texture2D" path="res://addons/quests/ui/objective_unchecked.svg" id="2_qobju"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kn7yh"]
 content_margin_left = 10.0
 content_margin_top = 6.0
@@ -144,6 +147,56 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qwin1"]
+content_margin_left = 14.0
+content_margin_top = 8.4
+content_margin_right = 14.0
+content_margin_bottom = 8.4
+bg_color = Color(0.08, 0.09, 0.12, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.36, 0.4, 0.5, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qdng1"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(0.45, 0.16, 0.16, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.62, 0.26, 0.26, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qdng2"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(0.58, 0.2, 0.2, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.72, 0.32, 0.32, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qobj1"]
+
 [resource]
 default_font_size = 16
 Button/colors/font_color = Color(0.92, 0.93, 0.95, 1)
@@ -166,9 +219,26 @@ LinkButton/colors/font_color = Color(0.55, 0.75, 1, 1)
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_mhpqg")
 QuestFoldoutHeader/base_type = &"Button"
 QuestFoldoutHeader/styles/normal = SubResource("StyleBoxFlat_gw2we")
+QuestDangerButton/base_type = &"Button"
+QuestDangerButton/styles/hover = SubResource("StyleBoxFlat_qdng2")
+QuestDangerButton/styles/normal = SubResource("StyleBoxFlat_qdng1")
+QuestDangerButton/styles/pressed = SubResource("StyleBoxFlat_qdng2")
 QuestHeading/base_type = &"Label"
 QuestHeading/colors/font_color = Color(0.96, 0.82, 0.45, 1)
 QuestHeading/font_sizes/font_size = 24
+QuestObjective/base_type = &"CheckBox"
+QuestObjective/colors/font_pressed_color = Color(0.65, 0.67, 0.72, 1)
+QuestObjective/constants/h_separation = 6
+QuestObjective/icons/checked = ExtResource("1_qobjc")
+QuestObjective/icons/checked_disabled = ExtResource("1_qobjc")
+QuestObjective/icons/unchecked = ExtResource("2_qobju")
+QuestObjective/icons/unchecked_disabled = ExtResource("2_qobju")
+QuestObjective/styles/disabled = SubResource("StyleBoxEmpty_qobj1")
+QuestObjective/styles/focus = SubResource("StyleBoxEmpty_qobj1")
+QuestObjective/styles/hover = SubResource("StyleBoxEmpty_qobj1")
+QuestObjective/styles/hover_pressed = SubResource("StyleBoxEmpty_qobj1")
+QuestObjective/styles/normal = SubResource("StyleBoxEmpty_qobj1")
+QuestObjective/styles/pressed = SubResource("StyleBoxEmpty_qobj1")
 QuestSubheading/base_type = &"Label"
 QuestSubheading/colors/font_color = Color(0.944, 0.864, 0.65, 1)
 QuestSubheading/font_sizes/font_size = 20
@@ -176,4 +246,6 @@ QuestSubsubheading/base_type = &"Label"
 QuestSubsubheading/colors/font_color = Color(0.92, 0.93, 0.95, 1)
 QuestSubsubheading/font_sizes/font_size = 17
 RichTextLabel/colors/default_color = Color(0.92, 0.93, 0.95, 1)
+QuestWindow/base_type = &"PanelContainer"
+QuestWindow/styles/panel = SubResource("StyleBoxFlat_qwin1")
 VBoxContainer/constants/separation = 6

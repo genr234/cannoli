@@ -43,8 +43,13 @@ signal quest_selected(quest: Quest)
 @export var show_offer_content_if_no_journal_or_dialogue_content := false
 ## If false, quests with one or no content are left out of the list.
 @export var show_quests_that_have_no_content := true
-@export var show_first_quest_details_on_open := false
+## Select the first quest when the journal opens and nothing is selected.
+@export var show_first_quest_details_on_open := true
 @export var send_message_on_open := SendMessageOnOpen.NOT_WHEN_USING_MOUSE
+## Shown in the details panel when the journal has no quests to list.
+@export var no_quests_text := "You have no quests."
+## Shown in the details panel when no quest is selected.
+@export var no_selection_text := "Select a quest to see its details."
 ## Message sent when the journal opens, e.g. to pause the player.
 @export var open_message := "Pause Player"
 @export var close_message := "Unpause Player"
@@ -61,6 +66,8 @@ var _just_shown := false
 var _just_toggled_tracking := false
 var _using_mouse := true
 var _focus_target: Control
+var _focused_quest: Quest
+var _focused_track_toggle := false
 
 @onready var selection_container: VBoxContainer = %SelectionContainer
 @onready var details: QuestContentView = %Details
@@ -118,8 +125,8 @@ func open(p_journal: QuestJournal) -> void:
 	_just_shown = true
 	if _must_send_close_message:
 		QuestMessages.send(self, null, open_message, "")
-	if show_first_quest_details_on_open:
-		selected_quest = _get_first_quest()
+	if selected_quest != null and not _quest_in_journal(selected_quest):
+		selected_quest = null
 	refresh_now()
 
 
@@ -165,6 +172,7 @@ func toggle_group(group: String) -> void:
 
 func select_quest(quest: Quest) -> void:
 	selected_quest = quest
+	_update_selection_highlight()
 	_repaint_selected_quest()
 	quest_selected.emit(quest)
 
@@ -199,6 +207,7 @@ func refresh_now() -> void:
 	if journal == null:
 		return
 	_focus_target = null
+	_remember_focused_row()
 	for child in selection_container.get_children():
 		selection_container.remove_child(child)
 		child.queue_free()
@@ -206,12 +215,34 @@ func refresh_now() -> void:
 	var group_names := _get_group_names()
 	var num_groupless := _count_groupless()
 	_add_quests_to_ui(group_names, num_groupless)
+	if _just_shown and show_first_quest_details_on_open and selected_quest == null:
+		var first_row := _find_first_quest_control()
+		if first_row != null:
+			selected_quest = (first_row.get_parent() as QuestNameButton).quest
+			_focus_target = first_row
+	_update_selection_highlight()
 	_repaint_selected_quest()
 	if _focus_target == null and _just_shown and visible:
 		_focus_target = _find_first_quest_control()
 	if _focus_target != null and is_visible_in_tree():
 		_focus_target.grab_focus.call_deferred()
 	_just_shown = false
+	_focused_quest = null
+
+
+# Rows are rebuilt on every refresh, so note which quest row had focus to
+# give it focus again afterwards.
+func _remember_focused_row() -> void:
+	var focused := get_viewport().gui_get_focus_owner()
+	var row := focused.get_parent() as QuestNameButton if focused != null else null
+	if row != null and selection_container.is_ancestor_of(row):
+		_focused_quest = row.quest
+		_focused_track_toggle = focused == row.track_toggle
+
+
+func _update_selection_highlight() -> void:
+	for row in selection_container.find_children("*", "QuestNameButton", true, false):
+		(row as QuestNameButton).set_selected((row as QuestNameButton).quest == selected_quest)
 
 
 func _schedule_refresh() -> void:
@@ -243,17 +274,6 @@ func _should_send_open_close_message() -> bool:
 		SendMessageOnOpen.NOT_WHEN_USING_MOUSE:
 			return not _using_mouse
 	return false
-
-
-func _get_first_quest() -> Quest:
-	if journal == null:
-		return null
-	for quest in journal.quest_list:
-		if quest == null:
-			continue
-		if show_completed_quests or not QuestUIHelpers.is_completed_state(quest.get_state()):
-			return quest
-	return null
 
 
 func _refresh_heading() -> void:
@@ -346,7 +366,10 @@ func _add_quest_to_ui(quest: Quest, container: Node) -> void:
 	if show_details_on_focus:
 		row.name_button.mouse_entered.connect(select_quest.bind(quest))
 		row.name_button.focus_entered.connect(select_quest.bind(quest))
-	if (show_first_quest_details_on_open and _just_shown) or quest == selected_quest:
+	if _focused_quest != null:
+		if quest == _focused_quest:
+			_focus_target = row.track_toggle if _focused_track_toggle and row.track_toggle.visible else row.name_button
+	elif (show_first_quest_details_on_open and _just_shown) or quest == selected_quest:
 		if _just_toggled_tracking:
 			_just_toggled_tracking = false
 			_focus_target = row.track_toggle
@@ -376,6 +399,8 @@ func _repaint_selected_quest() -> void:
 	track_button.hide()
 	abandon_button.hide()
 	if selected_quest == null:
+		if journal != null:
+			details.add_body(tr(no_selection_text) if _find_first_quest_control() != null else tr(no_quests_text), true)
 		return
 	var contents := _get_quest_contents(selected_quest)
 	details.add_contents(contents)
@@ -388,7 +413,7 @@ func _repaint_selected_quest() -> void:
 	var state := selected_quest.get_state()
 	var is_active := state == Quest.State.ACTIVE
 	var show_track := show_track_button_in_details and is_active and selected_quest.is_trackable
-	var show_abandon := selected_quest.is_abandonable and (is_active or state == Quest.State.ABANDONED)
+	var show_abandon := selected_quest.is_abandonable and is_active
 	track_button.visible = show_track
 	track_button.set_pressed_no_signal(selected_quest.show_in_track_hud)
 	abandon_button.visible = show_abandon
