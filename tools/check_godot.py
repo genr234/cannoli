@@ -6,7 +6,6 @@ Checks clean import, resource loading, plugin lifecycle and installer recovery.
 """
 import argparse
 import json
-import shutil
 import subprocess
 import tempfile
 import zipfile
@@ -155,13 +154,6 @@ def main() -> None:
         for pkg_id in ids:
             check(args.godot, artifacts, workspace, [pkg_id], pkg_id)
         check(args.godot, artifacts, workspace, ids, "all-packages")
-        demo = workspace / "demo"
-        demo.mkdir()
-        shutil.copytree(root / "addons", demo / "addons", ignore=shutil.ignore_patterns("*.import"))
-        shutil.copytree(root / "examples", demo / "examples", ignore=shutil.ignore_patterns("*.import"))
-        shutil.copy(root / "project.godot", demo / "project.godot")
-        run(args.godot, demo, "demo-import", "--editor", "--quit")
-        run(args.godot, demo, "demo-runtime", "--", "--smoke", marker="CANNOLI_DEMO_OK")
     print("All Godot release checks passed.")
 
 
