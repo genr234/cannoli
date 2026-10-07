@@ -227,13 +227,15 @@ func refresh_now() -> void:
 	if _focus_target != null and is_visible_in_tree():
 		_focus_target.grab_focus.call_deferred()
 	_just_shown = false
+	_just_toggled_tracking = false
 	_focused_quest = null
 
 
 # Rows are rebuilt on every refresh, so note which quest row had focus to
 # give it focus again afterwards.
 func _remember_focused_row() -> void:
-	var focused := get_viewport().gui_get_focus_owner()
+	var viewport := get_viewport()
+	var focused := viewport.gui_get_focus_owner() if viewport != null else null
 	var row := focused.get_parent() as QuestNameButton if focused != null else null
 	if row != null and selection_container.is_ancestor_of(row):
 		_focused_quest = row.quest
@@ -369,12 +371,8 @@ func _add_quest_to_ui(quest: Quest, container: Node) -> void:
 	if _focused_quest != null:
 		if quest == _focused_quest:
 			_focus_target = row.track_toggle if _focused_track_toggle and row.track_toggle.visible else row.name_button
-	elif (show_first_quest_details_on_open and _just_shown) or quest == selected_quest:
-		if _just_toggled_tracking:
-			_just_toggled_tracking = false
-			_focus_target = row.track_toggle
-		else:
-			_focus_target = row.name_button
+	elif quest == selected_quest:
+		_focus_target = row.track_toggle if _just_toggled_tracking and row.track_toggle.visible else row.name_button
 
 
 func _find_first_quest_control() -> Control:
