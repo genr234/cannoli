@@ -10,18 +10,12 @@ config_version=5
 
 [application]
 
-config/name="Cannoli Demo"
-run/main_scene="res://examples/demo.tscn"
+config/name="Cannoli"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [autoload]
 
 Save="*res://addons/save/save.gd"
-
-[display]
-
-window/size/viewport_width=800
-window/size/viewport_height=500
 
 [editor_plugins]
 
