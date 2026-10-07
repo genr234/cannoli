@@ -49,10 +49,14 @@ func _validate_property(property: Dictionary) -> void:
 func _on_awake() -> void:
 	if blackboard == null:
 		return
-	var board := blackboard
 	if String(variable).begins_with(BehaviorBlackboard.GLOBAL_PREFIX):
-		board = Behaviors.get_globals()
-	board.value_changed.connect(_on_value_changed)
+		Behaviors.get_globals().value_changed.connect(_on_value_changed)
+		return
+	# Inside a subtree the variable can live on any parent board, so listen to all.
+	var board := blackboard
+	while board:
+		board.value_changed.connect(_on_value_changed)
+		board = board.parent
 
 
 ## True when the variable passes the check now.
