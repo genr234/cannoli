@@ -1,9 +1,13 @@
 name: Release
 
-# Push a tag like v1.2.0 (or v1.3.0-beta.1 for a pre-release) to publish.
+# Main pushes refresh the rolling build; v* tags publish versioned releases.
 on:
   push:
+    branches: [main]
     tags: ["v*"]
+
+permissions:
+  contents: read
 
 jobs:
   ci:
@@ -14,10 +18,53 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    # Never interrupt an asset upload with another run for the same release.
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v5
       - run: python3 tools/build_release.py dist
+      - name: Publish latest build
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag=latest-build
+          if published_sha=$(gh api "repos/$GH_REPO/git/ref/tags/$tag" --jq '.object.sha'); then
+            # CI can finish out of order; never replace a newer published build.
+            comparison=$(gh api "repos/$GH_REPO/compare/$GITHUB_SHA...$published_sha" --jq '.status')
+            if [[ "$comparison" == ahead ]]; then
+              echo "A newer build is already published; skipping this rolling build."
+              exit 0
+            fi
+            gh api --method PATCH "repos/$GH_REPO/git/refs/tags/$tag" \
+              -f sha="$GITHUB_SHA" -F force=true
+          else
+            gh api --method POST "repos/$GH_REPO/git/refs" \
+              -f ref="refs/tags/$tag" -f sha="$GITHUB_SHA"
+          fi
+
+          cat > /tmp/release-notes.md <<EOF
+          ZIPs from the latest main commit that passed CI.
+
+          Commit: [$GITHUB_SHA](https://github.com/$GH_REPO/commit/$GITHUB_SHA)
+
+          Download cannoli_installer.zip for the installer, or an individual addon ZIP for manual setup. These files are refreshed automatically as main changes.
+          EOF
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" dist/*.zip --clobber
+            gh release upload "$tag" dist/packages.json --clobber
+            gh release edit "$tag" --title "Latest build" \
+              --notes-file /tmp/release-notes.md --prerelease --latest=false
+          else
+            gh release create "$tag" dist/* --verify-tag --title "Latest build" \
+              --notes-file /tmp/release-notes.md --prerelease --latest=false
+          fi
       - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
